@@ -2,10 +2,16 @@
 #Requires -RunAsAdministrator
 <#
 .Synopsis
-   Copies all claim rules from one RPT to another, even on another server
+   This script allows quick duplication of Relying Party trusts, either within or across farms.
 .DESCRIPTION
    Inspired by original work here: https://gallery.technet.microsoft.com/scriptcenter/Copy-ADFS-claim-rules-from-3c23b4bc
-   Copies all claim rules from one RPT to another, even on another server
+
+   Copies all claim rules from one RPT to another within a farm, which is useful for testing claims in "all-in-one scenarios".  It can also duplicate rules across farms for more complete testing scenarios, allowing pulling/pushing of settings between dev/test/prod.
+.EXAMPLE
+   Copy-ADFSClaimRules ProdRule TestRule
+
+   This command duplicates the settings from `ProdRule` into `TestRule`.  If `TestRule` doesn't exist, it will error as each RPT requires a unique identifier that cannot be copied.
+
 .EXAMPLE
    Copy-ADFSClaimRules -SourceRelyingPartyTrustName "myrule" -DestinationRelyingPartyTrustName "myrule" -SourceADFSServer server01 -DestinationADFSServer server02
 #>
@@ -44,6 +50,9 @@ function Copy-ADFSClaimRules
         if($DestinationADFSServer -ne $env:COMPUTERNAME) { $TargetRemote = $true }
         else { $TargetRemote = $false }
 
+        If ($SourceADFSServer -eq $DestinationADFSServer) { $CreateRPT = $false }
+        else { $CreateRPT = $true }
+
         If (($SourceADFSServer -eq $DestinationADFSServer) -and ($SourceRelyingPartyTrustName -eq $DestinationRelyingPartyTrustName)) {
             Write-Error "Attempting to write to istelf, aborting"
             return;
@@ -77,7 +86,7 @@ function Copy-ADFSClaimRules
         }
 
         # Checks are done, do the work
-        if(!$DestinationRPT) {
+        if(!$DestinationRPT -and $CreateRPT) {
             Write-Output "Destination RPT does not exist, creating..."
             if ($TargetRemote){
                 $command = { Add-AdfsRelyingPartyTrust -Name $Using:DestinationRelyingPartyTrustName -Identifier $Using:SourceRPT.Identifier }
@@ -90,9 +99,12 @@ function Copy-ADFSClaimRules
                 $DestinationRPT = Get-AdfsRelyingPartyTrust -Name $DestinationRelyingPartyTrustName
             }
         }
+        if(!$DestinationRPT -and !$CreateRPT) {
+            Write-Error "Could not find $DestinationRelyingPartyTrustName, and unique Identifier is required so cannot create, aborting."
+            return;
+        }
 
         Write-Output "copying settings over to $DestinationRelyingPartyTrustName..."
-
         $RPTSplat = @{
             TargetRelyingParty = $DestinationRPT
             IssuanceTransformRules = $SourceRPT.IssuanceTransformRules
