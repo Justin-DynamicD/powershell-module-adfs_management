@@ -13,7 +13,10 @@
    This command duplicates the settings from `ProdRule` into `TestRule`.  If `TestRule` doesn't exist, it will error as each RPT requires a unique identifier that cannot be copied.
 
 .EXAMPLE
-   Copy-ADFSClaimRules -SourceRelyingPartyTrustName "myrule" -DestinationRelyingPartyTrustName "myrule" -SourceADFSServer server01 -DestinationADFSServer server02
+   Copy-ADFSClaimRules -SourceRelyingPartyTrustName QA -DestinationRelyingPartyTrustName QA -SourceADFSServer server01 -DestinationADFSServer server02
+
+   This will copy the "QA" rule exactly between the two servers listed, creating the rule if it is missing.  Note that this command should be run on the primary server of each farm.
+   Either ADFSServer value can be omitted and the local host will be the assumed machine.  
 #>
 function Copy-ADFSClaimRules
 {
