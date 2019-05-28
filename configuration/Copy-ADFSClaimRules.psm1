@@ -1,4 +1,6 @@
-﻿<#
+﻿#Requires -Modules ADFS
+#Requires -RunAsAdministrator
+<#
 .Synopsis
    Copies all claim rules from one RPT to another, even on another server
 .DESCRIPTION
