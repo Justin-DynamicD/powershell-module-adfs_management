@@ -18,41 +18,49 @@
    This will copy the "QA" rule exactly between the two servers listed, creating the rule if it is missing.  Note that this command should be run on the primary server of each farm.
    Either ADFSServer value can be omitted and the local host will be the assumed machine.  
 #>
+$ErrorActionPreference = "Stop"
 function Copy-ADFSClaimRules
 {
     [CmdletBinding()]
     Param
     (
         # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$false,
-                   Position=0)]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=0)]
         [string] $SourceRelyingPartyTrustName,
 
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$false,
-                   Position=1)]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=1)]
         [string] $DestinationRelyingPartyTrustName,
 
-        [Parameter(Mandatory=$false,
-                   ValueFromPipeline=$false)]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
         [string] $SourceADFSServer = $env:COMPUTERNAME,
 
-        [Parameter(Mandatory=$false,
-                   ValueFromPipeline=$false)]
-        [string] $DestinationADFSServer = $env:COMPUTERNAME
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
+        [string] $DestinationADFSServer = $env:COMPUTERNAME,
+
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
+        [securestring] $Credential
     )
 
     Begin
     {
-        # quick query to determine if a remote connection for any configuration
+        # create any required sessions for connection
+        if ($Credential) {
+            $psrcreds = @{ Credential = $Credential }
+        }
 
-        if($SourceADFSServer -ne $env:COMPUTERNAME) { $SourceRemote = $true }
+        if($SourceADFSServer -ne $env:COMPUTERNAME) { 
+            $SourceRemote = $true
+            $SourceSession = New-PSSession -ComputerName $SourceADFSServer @psrcreds
+        }
         else { $SourceRemote = $false }
 
-        if($DestinationADFSServer -ne $env:COMPUTERNAME) { $TargetRemote = $true }
+        if($DestinationADFSServer -ne $env:COMPUTERNAME) { 
+            $TargetRemote = $true
+            $TargetSession = New-PSSession -ComputerName $DestinationADFSServer @psrcreds
+        }
         else { $TargetRemote = $false }
 
+        # quick safety check to prevent attempting to duplicate rules on a server
         If ($SourceADFSServer -eq $DestinationADFSServer) { $CreateRPT = $false }
         else { $CreateRPT = $true }
 
@@ -68,7 +76,7 @@ function Copy-ADFSClaimRules
         # Establish Source connections
         if ($SourceRemote){
             $command = { Get-AdfsRelyingPartyTrust -Name $Using:SourceRelyingPartyTrustName }
-            $SourceRPT = Invoke-Command -ComputerName $SourceADFSServer -ScriptBlock $command 
+            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command 
         }
         else {
             $SourceRPT = Get-AdfsRelyingPartyTrust -Name $SourceRelyingPartyTrustName
@@ -82,7 +90,7 @@ function Copy-ADFSClaimRules
 
         if ($TargetRemote){
             $command = { Get-AdfsRelyingPartyTrust -Name $Using:DestinationRelyingPartyTrustName }
-            $DestinationRPT = Invoke-Command -ComputerName $DestinationADFSServer -ScriptBlock $command  
+            $DestinationRPT = Invoke-Command -Session $TargetSession -ScriptBlock $command  
         }
         else {
             $DestinationRPT = Get-AdfsRelyingPartyTrust -Name $DestinationRelyingPartyTrustName
@@ -93,9 +101,9 @@ function Copy-ADFSClaimRules
             Write-Output "Destination RPT does not exist, creating..."
             if ($TargetRemote){
                 $command = { Add-AdfsRelyingPartyTrust -Name $Using:DestinationRelyingPartyTrustName -Identifier $Using:SourceRPT.Identifier }
-                Invoke-Command -ComputerName $DestinationADFSServer -ScriptBlock $command
+                Invoke-Command -Session $TargetSession -ScriptBlock $command
                 $command = { Get-AdfsRelyingPartyTrust -Name $Using:DestinationRelyingPartyTrustName }
-                $DestinationRPT = Invoke-Command -ComputerName $DestinationADFSServer -ScriptBlock $command
+                $DestinationRPT = Invoke-Command -Session $TargetSession -ScriptBlock $command
             }
             else {
                 Add-AdfsRelyingPartyTrust -Name $DestinationRelyingPartyTrustName -Identifier $SourceRPT.Identifier
@@ -121,7 +129,7 @@ function Copy-ADFSClaimRules
 
         if ($TargetRemote){
             $command = { Set-AdfsRelyingPartyTrust @Using:RPTSplat }
-            Invoke-Command -ComputerName $DestinationADFSServer -ScriptBlock $command  
+            Invoke-Command -Session $TargetSession -ScriptBlock $command  
         }
         else {
             Set-AdfsRelyingPartyTrust @RPTSplat
@@ -130,5 +138,12 @@ function Copy-ADFSClaimRules
     }
     End
     {
+        #tear down sessions
+        if ($SourceRemote) {
+            Remove-PSSession -Session $SourceSession
+        }
+        if ($TargetRemote) {
+            Remove-PSSession -Session $TargetSession
+        }
     }
 }
