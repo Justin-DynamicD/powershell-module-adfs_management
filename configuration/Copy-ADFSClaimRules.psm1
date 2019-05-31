@@ -16,7 +16,11 @@
    Copy-ADFSClaimRules -SourceRelyingPartyTrustName QA -DestinationRelyingPartyTrustName QA -SourceADFSServer server01 -DestinationADFSServer server02
 
    This will copy the "QA" rule exactly between the two servers listed, creating the rule if it is missing.  Note that this command should be run on the primary server of each farm.
-   Either ADFSServer value can be omitted and the local host will be the assumed machine.  
+   Either ADFSServer value can be omitted and the local host will be the assumed machine.
+.EXAMPLE
+   Copy-ADFSClaimRules QA QA -SourceADFSServer server01 -DestinationADFSServer server02 -Credential $mycreds
+
+   when running Powershell remotely, many auth methods do not allow passthrough authentication.  The `credential` param allows passing through credentials, which can be generated via `get-credential` cmdlet.
 #>
 $ErrorActionPreference = "Stop"
 function Copy-ADFSClaimRules
@@ -38,25 +42,28 @@ function Copy-ADFSClaimRules
         [string] $DestinationADFSServer = $env:COMPUTERNAME,
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
-        [securestring] $Credential
+        [System.Management.Automation.PSCredential] $Credential
     )
 
     Begin
     {
-        # create any required sessions for connection
+        # create an empty hashtable and populate connection info
+        $pssession = @{}
         if ($Credential) {
-            $psrcreds = @{ Credential = $Credential }
+            $pssession.Credential = $Credential
         }
 
         if($SourceADFSServer -ne $env:COMPUTERNAME) { 
             $SourceRemote = $true
-            $SourceSession = New-PSSession -ComputerName $SourceADFSServer @psrcreds
+            $pssession.ComputerName = $SourceADFSServer
+            $SourceSession = New-PSSession @pssession
         }
         else { $SourceRemote = $false }
 
         if($DestinationADFSServer -ne $env:COMPUTERNAME) { 
             $TargetRemote = $true
-            $TargetSession = New-PSSession -ComputerName $DestinationADFSServer @psrcreds
+            $pssession.ComputerName = $DestinationADFSServer
+            $TargetSession = New-PSSession @pssession
         }
         else { $TargetRemote = $false }
 
