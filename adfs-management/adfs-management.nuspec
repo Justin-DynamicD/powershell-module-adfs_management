@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>adfs-management</id>
+    <version>$version$</version>
+    <title>adfs-management</title>
+    <authors>Justin King</authors>
+    <owners>Justin King</owners>
+    <description>A collection of PowerShell functions for managing ADFS settings.</description>
+    <projectUrl>https://github.com/Justin-DynamicD/adfs</projectUrl>
+  </metadata>
+</package>
