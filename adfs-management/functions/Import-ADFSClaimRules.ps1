@@ -97,7 +97,7 @@ function Import-ADFSClaimRules
                 $RPTSplat.AutoUpdateEnabled = $RelyingPartyTrustContent.AutoUpdateEnabled
             }
             If ($null -ne $RelyingPartyTrustContent.ClaimsAccepted) {
-                $RPTSplat.ClaimsAccepted = $RelyingPartyTrustContent.ClaimsAccepted
+                $RPTSplat.ClaimAccepted = $RelyingPartyTrustContent.ClaimsAccepted
             }
             If ($null -ne $RelyingPartyTrustContent.ClaimsProviderName) {
                 $RPTSplat.ClaimsProviderName = $RelyingPartyTrustContent.ClaimsProviderName
