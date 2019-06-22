@@ -7,6 +7,9 @@
 
    Imports all claim rules from Relying Party Trust, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
    If a Claims rule is missing, it is created.
+
+   while export-adfsclaimsrule fetches configurations "as-is" using the adfs cmdlets, the import will re-format said output to be compatible with the input format.
+   For example, an export will define `ClaimsAccepted`.  This function will convert it to `ClaimAccepted` to ensure it imports.
 .EXAMPLE
    Import-ADFSClaimRules $myRPT
 
@@ -75,7 +78,7 @@ function Import-ADFSClaimRules
             }
         }
 
-        # Not every field is supported by set-AdfsRelyingPartyTrustplus null entries are problematic, so we filter
+        # Not every field is supported by set-AdfsRelyingPartyTrust, plus null entries are problematic, so we filter and convert as needed.
         $RPTSplat = @{}
         $RPTSplat.TargetRelyingParty = $SourceRPT
             If ($null -ne $RelyingPartyTrustContent.AdditionalAuthenticationRules) {
@@ -172,6 +175,7 @@ function Import-ADFSClaimRules
                 $RPTSplat.WSFedEndpoint = $RelyingPartyTrustContent.WSFedEndpoint
             }
 
+        # Finally work can be done.
         Write-Output "importing content"
         if ($SourceRemote){
             $command = { Set-AdfsRelyingPartyTrust @Using:RPTSplat }
