@@ -91,7 +91,7 @@ function Import-ADFSClaimRules
             EncryptedNameIdRequired = $RelyingPartyTrustContent.EncryptedNameIdRequired
             EncryptionCertificate = $RelyingPartyTrustContent.EncryptionCertificate
             EncryptionCertificateRevocationCheck  = $RelyingPartyTrustContent.EncryptionCertificateRevocationCheck
-            ImpersonationAuthorizationRules = $RelyingPartyTrustContent.
+            ImpersonationAuthorizationRules = $RelyingPartyTrustContent.ImpersonationAuthorizationRules
             IssuanceAuthorizationRules = $RelyingPartyTrustContent.IssuanceAuthorizationRules       
             IssuanceTransformRules = $RelyingPartyTrustContent.IssuanceTransformRules
             IssueOAuthRefreshTokensTo  = $RelyingPartyTrustContent.IssueOAuthRefreshTokensTo
