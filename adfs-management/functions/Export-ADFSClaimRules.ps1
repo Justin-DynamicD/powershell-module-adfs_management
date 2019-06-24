@@ -54,24 +54,30 @@ function Export-ADFSClaimRules
         # Establish Source connections
         if ($SourceRemote){
             $command = { Get-AdfsRelyingPartyTrust -Name $Using:RelyingPartyTrustName }
-            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command 
+            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
         }
         else {
             $SourceRPT = Get-AdfsRelyingPartyTrust -Name $RelyingPartyTrustName
         }
 
-        if(!$SourceRPT) {
-            Write-Warning "Could not find $RelyingPartyTrustName"
+        # convert cutomobject to a hashtable so it can be easily modified for IAC tasks
+        if($SourceRPT) {
+          $returnRPT = @{}
+          $SourceRPT.psobject.properties | ForEach-Object { $returnRPT[$_.Name] = $_.Value }
+        }
+        Else {
+          Write-Warning "Could not find $RelyingPartyTrustName"
         }
 
     }
+
     End
     {
-        #tear down sessions
-        if ($SourceRemote) {
-            Remove-PSSession -Session $SourceSession
-        }
+      #tear down sessions
+      if ($SourceRemote) {
+        Remove-PSSession -Session $SourceSession
+      }
 
-        return $SourceRPT
+      return $returnRPT
     }
 }

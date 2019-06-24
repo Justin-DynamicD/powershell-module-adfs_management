@@ -24,132 +24,71 @@
 $ErrorActionPreference = "Stop"
 function Copy-ADFSClaimRules
 {
-    [CmdletBinding()]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=0)]
-        [string] $SourceRelyingPartyTrustName,
+  [CmdletBinding()]
+  Param
+  (
+    # Param1 help description
+    [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=0)]
+    [Alias("SourceRPT")]
+    [string] $SourceRelyingPartyTrustName,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=1)]
-        [string] $DestinationRelyingPartyTrustName,
+    [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=1)]
+    [Alias("TargetRPT")]
+    [string] $DestinationRelyingPartyTrustName,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
-        [string] $SourceADFSServer = $env:COMPUTERNAME,
+    [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
+    [Alias("SourceServer")]
+    [string] $SourceADFSServer = $env:COMPUTERNAME,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
-        [string] $DestinationADFSServer = $env:COMPUTERNAME,
+    [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
+    [Alias("TargetServer")]
+    [string] $DestinationADFSServer = $env:COMPUTERNAME,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
-        [System.Management.Automation.PSCredential] $Credential
-    )
+    [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
+    [System.Management.Automation.PSCredential] $Credential
+  )
 
-    Begin
-    {
-        # create an empty hashtable and populate connection info
-        $pssession = @{}
-        if ($Credential) {
-            $pssession.Credential = $Credential
-        }
-
-        if($SourceADFSServer -ne $env:COMPUTERNAME) { 
-            $SourceRemote = $true
-            $pssession.ComputerName = $SourceADFSServer
-            $SourceSession = New-PSSession @pssession
-        }
-        else { $SourceRemote = $false }
-
-        if($DestinationADFSServer -ne $env:COMPUTERNAME) { 
-            $TargetRemote = $true
-            $pssession.ComputerName = $DestinationADFSServer
-            $TargetSession = New-PSSession @pssession
-        }
-        else { $TargetRemote = $false }
-
-        # quick safety check to prevent attempting to duplicate rules on a server
-        If ($SourceADFSServer -eq $DestinationADFSServer) { $CreateRPT = $false }
-        else { $CreateRPT = $true }
-
-        If (($SourceADFSServer -eq $DestinationADFSServer) -and ($SourceRelyingPartyTrustName -eq $DestinationRelyingPartyTrustName)) {
-            Write-Error "Attempting to write to istelf, aborting"
-            return;
-        }
-
+  Begin
+  {
+    # quick safety check to prevent attempting to duplicate rules on a server
+    If (($SourceADFSServer -eq $DestinationADFSServer) -and ($SourceRelyingPartyTrustName -eq $DestinationRelyingPartyTrustName)) {
+      Write-Error "Attempting to write claims to istelf, aborting" -ErrorAction Stop
     }
-    Process
-    {
-
-        # Establish Source connections
-        if ($SourceRemote){
-            $command = { Get-AdfsRelyingPartyTrust -Name $Using:SourceRelyingPartyTrustName }
-            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command 
-        }
-        else {
-            $SourceRPT = Get-AdfsRelyingPartyTrust -Name $SourceRelyingPartyTrustName
-        }
-
-        if(!$SourceRPT) {
-            Write-Error "Could not find $SourceRelyingPartyTrustName"
-            return;
-        }
-
-
-        if ($TargetRemote){
-            $command = { Get-AdfsRelyingPartyTrust -Name $Using:DestinationRelyingPartyTrustName }
-            $DestinationRPT = Invoke-Command -Session $TargetSession -ScriptBlock $command  
-        }
-        else {
-            $DestinationRPT = Get-AdfsRelyingPartyTrust -Name $DestinationRelyingPartyTrustName
-        }
-
-        # Checks are done, do the work
-        if(!$DestinationRPT -and $CreateRPT) {
-            Write-Output "Destination RPT does not exist, creating..."
-            if ($TargetRemote){
-                $command = { Add-AdfsRelyingPartyTrust -Name $Using:DestinationRelyingPartyTrustName -Identifier $Using:SourceRPT.Identifier }
-                Invoke-Command -Session $TargetSession -ScriptBlock $command
-                $command = { Get-AdfsRelyingPartyTrust -Name $Using:DestinationRelyingPartyTrustName }
-                $DestinationRPT = Invoke-Command -Session $TargetSession -ScriptBlock $command
-            }
-            else {
-                Add-AdfsRelyingPartyTrust -Name $DestinationRelyingPartyTrustName -Identifier $SourceRPT.Identifier
-                $DestinationRPT = Get-AdfsRelyingPartyTrust -Name $DestinationRelyingPartyTrustName
-            }
-        }
-        if(!$DestinationRPT -and !$CreateRPT) {
-            Write-Error "Could not find $DestinationRelyingPartyTrustName, and unique Identifier is required so cannot create, aborting."
-            return;
-        }
-
-        Write-Output "copying settings over to $DestinationRelyingPartyTrustName..."
-        $RPTSplat = @{
-            TargetRelyingParty = $DestinationRPT
-            IssuanceTransformRules = $SourceRPT.IssuanceTransformRules
-            IssuanceAuthorizationRules = $SourceRPT.IssuanceAuthorizationRules
-            DelegationAuthorizationRules = $SourceRPT.DelegationAuthorizationRules
-            WSFedEndpoint = $SourceRPT.WSFedEndpoint
-            AdditionalWSFedEndpoint = $SourceRPT.AdditionalWSFedEndpoint
-            SamlEndpoint = $SourceRPT.SamlEndpoint
-            EnableJWT = $SourceRpt.EnableJWT
-        }
-
-        if ($TargetRemote){
-            $command = { Set-AdfsRelyingPartyTrust @Using:RPTSplat }
-            Invoke-Command -Session $TargetSession -ScriptBlock $command  
-        }
-        else {
-            Set-AdfsRelyingPartyTrust @RPTSplat
-        }
+  }
+  Process
+  {
+    # Export settings from Source
+    $exportVars = @{
+      server = $SourceADFSServer
+      RelyingPartyTrustName = $SourceRelyingPartyTrustName
+    }
+    if ($Credential) {
+      $exportVars.Credential = $Credential
+    }
+    Write-Output "Exporting $($SourceRelyingPartyTrustName)..."
+    $capturedRPT = Export-ADFSClaimRules  @exportVars
     
+    # If nothing was found, error
+    If ($null -eq $capturedRPT) {
+      Write-Error "RPT $SourceRelyingPartyTrustName could not be found. Aborting" -ErrorAction Stop
     }
-    End
-    {
-        #tear down sessions
-        if ($SourceRemote) {
-            Remove-PSSession -Session $SourceSession
-        }
-        if ($TargetRemote) {
-            Remove-PSSession -Session $TargetSession
-        }
+
+    # If the RelyingPartyTrust Name changes, update the name
+    If ($SourceRelyingPartyTrustName -ne $DestinationRelyingPartyTrustName){
+      $capturedRPT.Name = $DestinationRelyingPartyTrustName
     }
+
+    # Import settings to destination
+    Write-Output "Importing $($capturedRPT.Name)..."
+    $importVars = @{
+    server = $DestinationADFSServer
+    RelyingPartyTrustContent = $capturedRPT
+    }
+    if ($Credential) {
+        $importVars.Credential = $Credential
+    }
+    Import-ADFSClaimRules @importVars
+
+  }
+  End {}
 }
