@@ -1,5 +1,4 @@
-﻿#Requires -Modules ADFS
-<#
+﻿<#
 .Synopsis
    This script exports RelyingPartTrust valuewith extra authentication rules to allow for remote execution.
 .DESCRIPTION

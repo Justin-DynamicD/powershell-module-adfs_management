@@ -1,5 +1,4 @@
-﻿#Requires -Modules ADFS
-<#
+﻿<#
 .Synopsis
    This script allows quick duplication of Relying Party trusts, either within or across farms.
 .DESCRIPTION
