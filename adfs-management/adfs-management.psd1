@@ -16,6 +16,7 @@
       PSData = @{
         Tags = @('ADFS','ConfigurationData', 'ConfigurationManagement')
         ProjectUri = 'https://github.com/Justin-DynamicD/powershell-module-adfs_management'
+        LicenseUri = 'https://github.com/Justin-DynamicD/powershell-module-adfs_management/blob/master/LICENSE'
       } # End of PSData hashtable
     } # End of PrivateData hashtable
   }
