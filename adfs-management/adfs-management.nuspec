@@ -7,6 +7,6 @@
     <authors>Justin King</authors>
     <owners>Justin King</owners>
     <description>A collection of PowerShell functions for managing ADFS settings.</description>
-    <projectUrl>https://github.com/Justin-DynamicD/adfs</projectUrl>
+    <projectUrl>https://github.com/Justin-DynamicD/powershell-module-adfs_management</projectUrl>
   </metadata>
 </package>
