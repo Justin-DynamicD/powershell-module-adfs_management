@@ -6,6 +6,7 @@ resources:
     - repository: templates
       type: github
       name: Justin-DynamicD/azure_pipeline-templates
+      endpoint: GitHub
 
 jobs:
   - template: powershell_module.yml@templates
