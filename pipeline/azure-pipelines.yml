@@ -1,6 +1,10 @@
 trigger:
   - master
 
+variables: 
+  majorMinorVersion: 1.0
+  semanticVersion: $[counter(variables['majorMinorVersion'], 0)]
+
 resources:
   repositories:
     - repository: templates
@@ -12,3 +16,4 @@ jobs:
   - template: powershell_module.yml@templates
     parameters:
       module_name: adfs-management
+      module_version: $(majorMinorVersion).$(semanticVersion)
