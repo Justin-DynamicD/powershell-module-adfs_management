@@ -1,5 +1,7 @@
 # adfs-management
 
+[![Build Status](https://dev.azure.com/Justin-DynamicD/GitHubPipelines/_apis/build/status/Justin-DynamicD.powershell-module-adfs_management?branchName=master)](https://dev.azure.com/Justin-DynamicD/GitHubPipelines/_build/latest?definitionId=4&branchName=master)
+
 This PowerShell module allows for the easy export and import of various claims and other adfs components to make it easier to control ADFS via code.  It is deliberately NOT in DSC format as those modules interact very poorly with CAPS, and a simple `import-module` ends up being faster/more reliable.
 
 ## configuration
