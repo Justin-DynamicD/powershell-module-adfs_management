@@ -10,16 +10,17 @@
    while export-adfsclaimsrule fetches configurations "as-is" using the adfs cmdlets, the import will re-format said output to be compatible with the input format.
    For example, an export will define `ClaimsAccepted`.  This function will convert it to `ClaimAccepted` to ensure it imports.
 .EXAMPLE
-   Import-ADFSClaimRules $myRPT
+   Import-ADFSClaimRule $myRPT
 
    This will import a previously exported RPT rule.
 .EXAMPLE
-   Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClaimRules $_ -Server ADFS01 -Credential $mycreds
+   Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClaimRule $_ -Server ADFS01 -Credential $mycreds
 
    In this example a json file is imported and applied to a remote server with specific credentials.
 #>
-$ErrorActionPreference = "Stop"
-function Import-ADFSClaimRules
+
+
+function Import-ADFSClaimRule
 {
     [CmdletBinding()]
     Param
@@ -38,6 +39,7 @@ function Import-ADFSClaimRules
 
     Begin
     {
+        $ErrorActionPreference = "Stop"
         # create an empty hashtable and populate connection info
         $pssession = @{}
         if ($Credential) {

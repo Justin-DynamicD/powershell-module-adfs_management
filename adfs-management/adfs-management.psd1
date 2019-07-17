@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.0.0'
+    ModuleVersion = '1.1.0'
     GUID = '0ad55c54-b693-4636-9375-4877987bfdb0'
     Author = 'Justin King'
     CompanyName = 'Unknown'
@@ -7,11 +7,15 @@
     Description = 'Contains functions that help export and import settings in ADFS.  Helps with IaC scenarios.'
     PowerShellVersion = '4.0'
     NestedModules = @(
-      '.\functions\Copy-ADFSClaimRules.ps1',
-      '.\functions\Export-ADFSClaimRules.ps1',
-      '.\functions\Import-ADFSClaimRules.ps1'
+      '.\functions\Copy-ADFSClaimRule.ps1',
+      '.\functions\Export-ADFSClaimRule.ps1',
+      '.\functions\Import-ADFSClaimRule.ps1'
     )
-    FunctionsToExport = @('*')
+    FunctionsToExport = @(
+      'Copy-ADFSClaimRule',
+      'Export-ADFSClaimRule',
+      'Import-ADFSClaimRule'
+    )
     PrivateData = @{
       PSData = @{
         Tags = @('ADFS','ConfigurationData', 'ConfigurationManagement')

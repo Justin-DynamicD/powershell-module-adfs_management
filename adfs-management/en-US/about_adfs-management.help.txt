@@ -1,0 +1,19 @@
+TOPIC
+    about_adfs-management
+    
+SHORT DESCRIPTION
+    This PowerShell module allows for the easy export and import of various claims and other adfs components to make it easier to control ADFS via code.
+    
+    The general idea/concept of this module is to make it easier to backup and restore claims across ADFS Farms.  By standardizing the output as a hashtable, it has the added benefit of being good in CICD pipelines, as hastables can be consistently stored in code as json, then imported.
+
+SYSTEM REQUIREMENTS
+    PowerShell 4.0+
+
+OVERVIEW  
+    Most functions have native ADFS equivelents, and are merely "wrapped" in logic to make it easier to run remotely as well as standardizing input/output logic.  Therefore you can use a build server to remotely apply a claims idempotently like so:
+
+    $myRPT = Get-Content rule.json | convertfrom-json
+    Import-ADFSClaimRule $myRPT -server adfs-srv-01
+
+SEE ALSO
+    https://github.com/Justin-DynamicD/powershell-module-adfs_management
