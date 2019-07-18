@@ -10,16 +10,17 @@
    while export-adfsclaimsrule fetches configurations "as-is" using the adfs cmdlets, the import will re-format said output to be compatible with the input format.
    For example, an export will define `ClaimsAccepted`.  This function will convert it to `ClaimAccepted` to ensure it imports.
 .EXAMPLE
-   Import-ADFSClaimRules $myRPT
+   Import-ADFSClaimRule $myRPT
 
    This will import a previously exported RPT rule.
 .EXAMPLE
-   Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClaimRules $_ -Server ADFS01 -Credential $mycreds
+   Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClaimRule $_ -Server ADFS01 -Credential $mycreds
 
    In this example a json file is imported and applied to a remote server with specific credentials.
 #>
-$ErrorActionPreference = "Stop"
-function Import-ADFSClaimRules
+
+
+function Import-ADFSClaimRule
 {
     [CmdletBinding()]
     Param
@@ -38,13 +39,14 @@ function Import-ADFSClaimRules
 
     Begin
     {
+        $ErrorActionPreference = "Stop"
         # create an empty hashtable and populate connection info
         $pssession = @{}
         if ($Credential) {
             $pssession.Credential = $Credential
         }
 
-        if($Server -ne $env:COMPUTERNAME) { 
+        if($Server -ne $env:COMPUTERNAME) {
             $SourceRemote = $true
             $pssession.ComputerName = $Server
             $SourceSession = New-PSSession @pssession
@@ -57,7 +59,7 @@ function Import-ADFSClaimRules
         # Establish Source connections
         if ($SourceRemote){
             $command = { Get-AdfsRelyingPartyTrust -Name $Using:RelyingPartyTrustContent.Name }
-            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command 
+            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
         }
         else {
             $SourceRPT = Get-AdfsRelyingPartyTrust -Name $RelyingPartyTrustContent.Name
@@ -126,7 +128,7 @@ function Import-ADFSClaimRules
                 $RPTSplat.ImpersonationAuthorizationRules = $RelyingPartyTrustContent.ImpersonationAuthorizationRules
             }
             If ($null -ne $RelyingPartyTrustContent.IssuanceAuthorizationRules) {
-                $RPTSplat.IssuanceAuthorizationRules = $RelyingPartyTrustContent.IssuanceAuthorizationRules       
+                $RPTSplat.IssuanceAuthorizationRules = $RelyingPartyTrustContent.IssuanceAuthorizationRules
             }
             If ($null -ne $RelyingPartyTrustContent.IssuanceTransformRules) {
                 $RPTSplat.IssuanceTransformRules = $RelyingPartyTrustContent.IssuanceTransformRules
@@ -178,7 +180,7 @@ function Import-ADFSClaimRules
         Write-Output "importing content"
         if ($SourceRemote){
             $command = { Set-AdfsRelyingPartyTrust @Using:RPTSplat }
-            Invoke-Command -Session $SourceSession -ScriptBlock $command  
+            Invoke-Command -Session $SourceSession -ScriptBlock $command
         }
         else {
             Set-AdfsRelyingPartyTrust @RPTSplat
