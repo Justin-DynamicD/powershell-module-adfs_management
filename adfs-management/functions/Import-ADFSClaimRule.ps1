@@ -46,7 +46,7 @@ function Import-ADFSClaimRule
             $pssession.Credential = $Credential
         }
 
-        if($Server -ne $env:COMPUTERNAME) { 
+        if($Server -ne $env:COMPUTERNAME) {
             $SourceRemote = $true
             $pssession.ComputerName = $Server
             $SourceSession = New-PSSession @pssession
@@ -59,7 +59,7 @@ function Import-ADFSClaimRule
         # Establish Source connections
         if ($SourceRemote){
             $command = { Get-AdfsRelyingPartyTrust -Name $Using:RelyingPartyTrustContent.Name }
-            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command 
+            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
         }
         else {
             $SourceRPT = Get-AdfsRelyingPartyTrust -Name $RelyingPartyTrustContent.Name
@@ -128,7 +128,7 @@ function Import-ADFSClaimRule
                 $RPTSplat.ImpersonationAuthorizationRules = $RelyingPartyTrustContent.ImpersonationAuthorizationRules
             }
             If ($null -ne $RelyingPartyTrustContent.IssuanceAuthorizationRules) {
-                $RPTSplat.IssuanceAuthorizationRules = $RelyingPartyTrustContent.IssuanceAuthorizationRules       
+                $RPTSplat.IssuanceAuthorizationRules = $RelyingPartyTrustContent.IssuanceAuthorizationRules
             }
             If ($null -ne $RelyingPartyTrustContent.IssuanceTransformRules) {
                 $RPTSplat.IssuanceTransformRules = $RelyingPartyTrustContent.IssuanceTransformRules
@@ -180,7 +180,7 @@ function Import-ADFSClaimRule
         Write-Output "importing content"
         if ($SourceRemote){
             $command = { Set-AdfsRelyingPartyTrust @Using:RPTSplat }
-            Invoke-Command -Session $SourceSession -ScriptBlock $command  
+            Invoke-Command -Session $SourceSession -ScriptBlock $command
         }
         else {
             Set-AdfsRelyingPartyTrust @RPTSplat

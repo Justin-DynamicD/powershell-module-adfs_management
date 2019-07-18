@@ -42,7 +42,7 @@ function Export-ADFSClaimRule
             $pssession.Credential = $Credential
         }
 
-        if($Server -ne $env:COMPUTERNAME) { 
+        if($Server -ne $env:COMPUTERNAME) {
             $SourceRemote = $true
             $pssession.ComputerName = $Server
             $SourceSession = New-PSSession @pssession

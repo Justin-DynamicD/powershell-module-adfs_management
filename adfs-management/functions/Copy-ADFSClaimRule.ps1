@@ -68,7 +68,7 @@ function Copy-ADFSClaimRule
     }
     Write-Output "Exporting $($SourceRelyingPartyTrustName)..."
     $capturedRPT = Export-ADFSClaimRule  @exportVars
-    
+
     # If nothing was found, error
     If ($null -eq $capturedRPT) {
       Write-Error "RPT $SourceRelyingPartyTrustName could not be found. Aborting" -ErrorAction Stop
