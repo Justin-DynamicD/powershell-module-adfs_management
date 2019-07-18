@@ -2,7 +2,7 @@ trigger:
   - master
 
 variables: 
-  majorMinorVersion: 1.0
+  majorMinorVersion: 1.1
   semanticVersion: $[counter(variables['majorMinorVersion'], 0)]
 
 resources:
