@@ -16,17 +16,15 @@
 #>
 
 
-function Export-ADFSClient
+function Import-ADFSClient
 {
     [CmdletBinding()]
     Param
     (
         # Param1 help description
         [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true, Position=0)]
-        [string] $Name,
-
-        [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [string] $ClientId,
+        [Alias("Content")]
+        [System.Array] $ADFSClient,
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
         [string] $Server = $env:COMPUTERNAME,
@@ -81,7 +79,6 @@ function Export-ADFSClient
             $client.psobject.properties | ForEach-Object { $clientHash[$_.Name] = $_.Value }
             $returnClient += $clientHash
           }
-          $returnClient = $returnClient | ConvertTo-Json
         }
         Else {
           Write-Warning "Could not find any ADFS Clients"
