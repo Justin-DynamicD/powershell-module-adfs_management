@@ -6,11 +6,11 @@
 
    Exports all client rules from farm, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
 .EXAMPLE
-   Export-ADFSClient | ConvertTo-Json
+   Export-ADFSClient
 
    This will export all clients in json format for saving in a config-as-code scenario.
 .EXAMPLE
-   Export-ADFSClient -Name MyClient -Server ADFS01 -Credential $creds | ConvertTo-Json
+   Export-ADFSClient -Name MyClient -Server ADFS01 -Credential $creds
 
    In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.
 #>
@@ -55,7 +55,7 @@ function Export-ADFSClient
     Process
     {
 
-        # Create Hashtable with dearch variables
+        # Create Hashtable with search variables
         $clientSearch = @{}
         if ($Name) {
           $clientSearch.Name = $Name

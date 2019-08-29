@@ -1,20 +1,19 @@
 ﻿<#
 .Synopsis
-   This script exports ADFSClient values with extra authentication rules to allow for remote execution.
+   This script imports ADFSClient values with extra authentication rules to allow for remote execution.
 .DESCRIPTION
    Inspired by original work here: https://gallery.technet.microsoft.com/scriptcenter/Copy-ADFS-claim-rules-from-3c23b4bc
 
-   Exports all client rules from farm, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
+   Imports all client rules from farm, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
 .EXAMPLE
-   Export-ADFSClient | ConvertTo-Json
+   Import-ADFSClient $myClient
 
-   This will export all clients in json format for saving in a config-as-code scenario.
+   This will import a previously exported client.
 .EXAMPLE
-   Export-ADFSClient -Name MyClient -Server ADFS01 -Credential $creds | ConvertTo-Json
+   Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClient $_ -Server ADFS01 -Credential $mycreds
 
-   In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.
+   In this example a json file is imported and applied to a remote server with specific credentials.
 #>
-
 
 function Import-ADFSClient
 {
@@ -24,7 +23,7 @@ function Import-ADFSClient
         # Param1 help description
         [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true, Position=0)]
         [Alias("Content")]
-        [System.Array] $ADFSClient,
+        [System.Object] $ADFSClient,
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
         [string] $Server = $env:COMPUTERNAME,
@@ -53,36 +52,15 @@ function Import-ADFSClient
     Process
     {
 
-        # Create Hashtable with dearch variables
-        $clientSearch = @{}
-        if ($Name) {
-          $clientSearch.Name = $Name
-        }
-        if ($ClientId) {
-          $clientSearch.ClientId = $ClientId
-        }
+      Write-Output "importing content"
+      if ($SourceRemote){
+          $command = { Set-AdfsClient @Using:RPTSplat }
+          Invoke-Command -Session $SourceSession -ScriptBlock $command
+      }
+      else {
+          Set-AdfsClient @RPTSplat
+      }
 
-        # Establish Source connections
-        if ($SourceRemote){
-            $command = { Get-AdfsClient @Using:clientSearch }
-            $SourceClient = Invoke-Command -Session $SourceSession -ScriptBlock $command
-        }
-        else {
-            $SourceClient = Get-AdfsClient @clientSearch
-        }
-
-        # convert cutomobject(s) to a hashtable so it can be easily modified for IAC tasks
-        If ($SourceClient) {
-          $returnClient = @()
-          foreach ($client in $sourceClient) {
-            $clientHash = @{}
-            $client.psobject.properties | ForEach-Object { $clientHash[$_.Name] = $_.Value }
-            $returnClient += $clientHash
-          }
-        }
-        Else {
-          Write-Warning "Could not find any ADFS Clients"
-        }
     }
 
     End
