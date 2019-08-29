@@ -9,12 +9,16 @@
     NestedModules = @(
       '.\functions\Copy-ADFSClaimRule.ps1',
       '.\functions\Export-ADFSClaimRule.ps1',
-      '.\functions\Import-ADFSClaimRule.ps1'
+      '.\functions\Export-ADFSClient.ps1',
+      '.\functions\Import-ADFSClaimRule.ps1',
+      '.\functions\Import-ADFSClient.ps1'
     )
     FunctionsToExport = @(
       'Copy-ADFSClaimRule',
       'Export-ADFSClaimRule',
-      'Import-ADFSClaimRule'
+      'Export-ADFSClient',
+      'Import-ADFSClaimRule',
+      'Import-ADFSClient'
     )
     PrivateData = @{
       PSData = @{
