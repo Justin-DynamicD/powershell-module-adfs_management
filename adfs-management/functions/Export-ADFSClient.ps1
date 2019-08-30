@@ -45,6 +45,7 @@ function Export-ADFSClient
             $pssession.Credential = $Credential
         }
 
+        # Establish Source connections  
         if($Server -ne $env:COMPUTERNAME) {
             $SourceRemote = $true
             $pssession.ComputerName = $Server
@@ -64,7 +65,7 @@ function Export-ADFSClient
           $clientSearch.ClientId = $ClientId
         }
 
-        # Establish Source connections
+        # gather info using existing cmdlets
         if ($SourceRemote){
             $command = { Get-AdfsClient @Using:clientSearch }
             $SourceClient = Invoke-Command -Session $SourceSession -ScriptBlock $command
@@ -79,6 +80,9 @@ function Export-ADFSClient
           foreach ($client in $sourceClient) {
             $clientHash = @{}
             $client.psobject.properties | ForEach-Object { $clientHash[$_.Name] = $_.Value }
+            $clientHash.Remove("PSComputerName")
+            $clientHash.Remove("PSShowComputerName")
+            $clientHash.Remove("RunspaceId")
             $returnClient += $clientHash
           }
           $returnClient = $returnClient | ConvertTo-Json
