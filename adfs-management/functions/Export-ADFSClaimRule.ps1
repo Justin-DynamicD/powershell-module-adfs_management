@@ -23,9 +23,12 @@
     [CmdletBinding()]
     Param
     (
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=0)]
-        [Alias("RPT")]
-        [string] $RelyingPartyTrustName,
+        [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true, Position=0)]
+        [Alias("RPT","RelyingPartyTrustName")]
+        [string] $Name,
+
+        [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [string] $Identifier,
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
         [string] $Server = $env:COMPUTERNAME,
@@ -52,25 +55,41 @@
     }
     Process
     {
+        
+        # Create Hashtable with search variables
+        $claimSearch = @{}
+        if ($Name) {
+          $claimSearch.Name = $Name
+        }
+        if ($Identifier) {
+          $claimSearch.Identifier = $Identifier
+        }
 
-        # Establish Source connections
+        # gather info using existing cmdlets
         if ($SourceRemote){
-            $command = { Get-AdfsRelyingPartyTrust -Name $Using:RelyingPartyTrustName }
-            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
+            $command = { Get-AdfsRelyingPartyTrust @Using:claimSearch }
+            $sourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
         }
         else {
-            $SourceRPT = Get-AdfsRelyingPartyTrust -Name $RelyingPartyTrustName
+            $sourceRPT = Get-AdfsRelyingPartyTrust @claimSearch
         }
 
         # convert cutomobject to a hashtable so it can be easily modified for IAC tasks
-        if($SourceRPT) {
-          $returnRPT = @{}
-          $SourceRPT.psobject.properties | ForEach-Object { $returnRPT[$_.Name] = $_.Value }
+        if($sourceRPT) {
+          $returnRPT = @()
+          foreach ($rPT in $sourceRPT) {
+            $rPTHash = @{}
+            $rPT.psobject.properties | ForEach-Object { $rPTHash[$_.Name] = $_.Value }
+            $rPTHash.Remove("PSComputerName")
+            $rPTHash.Remove("PSShowComputerName")
+            $rPTHash.Remove("RunspaceId")
+            $returnRPT += $rPTHash
+          }
+          $returnRPT = $returnRPT | ConvertTo-Json
         }
         Else {
-          Write-Warning "Could not find $RelyingPartyTrustName"
+          Write-Warning "Could not find any Relying Party Trust"
         }
-
     }
 
     End
