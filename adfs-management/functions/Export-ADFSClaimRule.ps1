@@ -10,22 +10,28 @@
     Exports all claim rules from Relying Party Trust, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
 
   .EXAMPLE
-    Export-ADFSClaimRule ProdRule | ConvertTo-Json
+    Export-ADFSClaimRule ProdRule
 
     This will export a rule in json format for saving in a config-as-code scenario.
 
   .EXAMPLE
-    Export-ADFSClaimRule ProdRule -Server ADFS01 -Credential $creds | ConvertTo-Json
+    Export-ADFSClaimRule -Server ADFS01 -Credential $creds
 
-    In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.
+    In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.  The cmdlet will export every discovered trust.
   #>
 
     [CmdletBinding()]
     Param
     (
-        [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=0)]
-        [Alias("RPT")]
-        [string] $RelyingPartyTrustName,
+        [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true, Position=0)]
+        [Alias("RPT","RelyingPartyTrustName")]
+        [string] $Name,
+
+        [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [string] $Identifier,
+
+        [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [string] $PrefixIdentifier,
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
         [string] $Server = $env:COMPUTERNAME,
@@ -52,25 +58,58 @@
     }
     Process
     {
+        
+        # Create Hashtable with search variables
+        $claimSearch = @{}
+        if ($Name) {
+          $claimSearch.Name = $Name
+        }
+        if ($Identifier) {
+          $claimSearch.Identifier = $Identifier
+        }
+        if ($PrefixIdentifier) {
+          $claimSearch.PrefixIdentifier = $PrefixIdentifier
+        }
 
-        # Establish Source connections
+        # gather info using existing cmdlets
         if ($SourceRemote){
-            $command = { Get-AdfsRelyingPartyTrust -Name $Using:RelyingPartyTrustName }
-            $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
+            $command = { Get-AdfsRelyingPartyTrust @Using:claimSearch }
+            $sourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
         }
         else {
-            $SourceRPT = Get-AdfsRelyingPartyTrust -Name $RelyingPartyTrustName
+            $sourceRPT = Get-AdfsRelyingPartyTrust @claimSearch
         }
 
         # convert cutomobject to a hashtable so it can be easily modified for IAC tasks
-        if($SourceRPT) {
-          $returnRPT = @{}
-          $SourceRPT.psobject.properties | ForEach-Object { $returnRPT[$_.Name] = $_.Value }
+        if($sourceRPT) {
+          $returnRPT = @()
+          foreach ($rPT in $sourceRPT) {
+            $rPTHash = @{}
+            $rPT.psobject.Properties | ForEach-Object {
+              
+              #certain fields are custom objects and must be exported as string to ensure they import properly
+              $tmpName = $_.Name
+              $tmpValue = $_.Value
+              switch ($tmpName) {
+                EncryptionCertificateRevocationCheck { $rPTHash[$tmpName] = "$($rPT.EncryptionCertificateRevocationCheck)" }
+                SigningCertificateRevocationCheck { $rPTHash[$tmpName] = "$($rPT.SigningCertificateRevocationCheck)" }
+                default { $rPTHash[$tmpName] = $tmpValue }
+              }
+            }
+
+            #remove psremote info if present
+            $rPTHash.Remove("PSComputerName")
+            $rPTHash.Remove("PSShowComputerName")
+            $rPTHash.Remove("RunspaceId")
+
+            # Add the Hash 
+            $returnRPT += $rPTHash
+          }
+          $returnRPT = $returnRPT | ConvertTo-Json
         }
         Else {
-          Write-Warning "Could not find $RelyingPartyTrustName"
+          Write-Warning "Could not find any Relying Party Trust"
         }
-
     }
 
     End
