@@ -10,14 +10,14 @@
     Exports all claim rules from Relying Party Trust, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
 
   .EXAMPLE
-    Export-ADFSClaimRule ProdRule | ConvertTo-Json
+    Export-ADFSClaimRule ProdRule
 
     This will export a rule in json format for saving in a config-as-code scenario.
 
   .EXAMPLE
-    Export-ADFSClaimRule ProdRule -Server ADFS01 -Credential $creds | ConvertTo-Json
+    Export-ADFSClaimRule -Server ADFS01 -Credential $creds
 
-    In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.
+    In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.  The cmdlet will export every discovered trust.
   #>
 
     [CmdletBinding()]
@@ -85,10 +85,24 @@
           $returnRPT = @()
           foreach ($rPT in $sourceRPT) {
             $rPTHash = @{}
-            $rPT.psobject.properties | ForEach-Object { $rPTHash[$_.Name] = $_.Value }
+            $rPT.psobject.Properties | ForEach-Object {
+              
+              #certain fields are custom objects and must be exported as string to ensure they import properly
+              $tmpName = $_.Name
+              $tmpValue = $_.Value
+              switch ($tmpName) {
+                EncryptionCertificateRevocationCheck { $rPTHash[$tmpName] = "$($rPT.EncryptionCertificateRevocationCheck)" }
+                SigningCertificateRevocationCheck { $rPTHash[$tmpName] = "$($rPT.SigningCertificateRevocationCheck)" }
+                default { $rPTHash[$tmpName] = $tmpValue }
+              }
+            }
+
+            #remove psremote info if present
             $rPTHash.Remove("PSComputerName")
             $rPTHash.Remove("PSShowComputerName")
             $rPTHash.Remove("RunspaceId")
+
+            # Add the Hash 
             $returnRPT += $rPTHash
           }
           $returnRPT = $returnRPT | ConvertTo-Json
