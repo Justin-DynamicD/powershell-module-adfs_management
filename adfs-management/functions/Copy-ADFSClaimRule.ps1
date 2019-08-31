@@ -1,33 +1,32 @@
-﻿<#
-.Synopsis
-   This script allows quick duplication of Relying Party trusts, either within or across farms.
-.DESCRIPTION
-   Inspired by original work here: https://gallery.technet.microsoft.com/scriptcenter/Copy-ADFS-claim-rules-from-3c23b4bc
-
-   Copies all claim rules from one RPT to another within a farm, which is useful for testing claims in "all-in-one scenarios".  It can also duplicate rules across farms for more complete testing scenarios, allowing pulling/pushing of settings between dev/test/prod.
-.EXAMPLE
-   Copy-ADFSClaimRule ProdRule TestRule
-
-   This command duplicates the settings from `ProdRule` into `TestRule`.  If `TestRule` doesn't exist, it will error as each RPT requires a unique identifier that cannot be copied.
-
-.EXAMPLE
-   Copy-ADFSClaimRule -SourceRelyingPartyTrustName QA -DestinationRelyingPartyTrustName QA -SourceADFSServer server01 -DestinationADFSServer server02
-
-   This will copy the "QA" rule exactly between the two servers listed, creating the rule if it is missing.  Note that this command should be run on the primary server of each farm.
-   Either ADFSServer value can be omitted and the local host will be the assumed machine.
-.EXAMPLE
-   Copy-ADFSClaimRule QA QA -SourceADFSServer server01 -DestinationADFSServer server02 -Credential $mycreds
-
-   when running Powershell remotely, many auth methods do not allow passthrough authentication.  The `credential` param allows passing through credentials, which can be generated via `get-credential` cmdlet.
-#>
-
-
-function Copy-ADFSClaimRule
+﻿function Copy-ADFSClaimRule
 {
+  <#
+  .SYNOPSIS
+    This script allows quick duplication of Relying Party trusts, either within or across farms.
+
+  .DESCRIPTION
+    Copies all claim rules from one RPT to another within a farm, which is useful for testing claims in "all-in-one scenarios".  It can also duplicate rules across farms for more complete testing scenarios, allowing pulling/pushing of settings between dev/test/prod.
+
+  .EXAMPLE
+    Copy-ADFSClaimRule ProdRule TestRule
+
+    This command duplicates the settings from `ProdRule` into `TestRule`.  If `TestRule` doesn't exist, it will error as each RPT requires a unique identifier that cannot be copied.
+
+  .EXAMPLE
+    Copy-ADFSClaimRule -SourceRelyingPartyTrustName QA -DestinationRelyingPartyTrustName QA -SourceADFSServer server01 -DestinationADFSServer server02
+
+    This will copy the "QA" rule exactly between the two servers listed, creating the rule if it is missing.  Note that this command should be run on the primary server of each farm.
+    Either ADFSServer value can be omitted and the local host will be the assumed machine.
+
+  .EXAMPLE
+    Copy-ADFSClaimRule QA QA -SourceADFSServer server01 -DestinationADFSServer server02 -Credential $mycreds
+
+    when running Powershell remotely, many auth methods do not allow passthrough authentication.  The `credential` param allows passing through credentials, which can be generated via `get-credential` cmdlet.
+  #>
+
   [CmdletBinding()]
   Param
   (
-    # Param1 help description
     [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=0)]
     [Alias("SourceRPT")]
     [string] $SourceRelyingPartyTrustName,

@@ -1,27 +1,27 @@
-﻿<#
-.Synopsis
-   This script imports RelyingPartTrust valuewith extra authentication rules to allow for remote execution.
-.DESCRIPTION
-   Inspired by original work here: https://gallery.technet.microsoft.com/scriptcenter/Copy-ADFS-claim-rules-from-3c23b4bc
-
-   Imports all claim rules from Relying Party Trust, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
-   If a Claims rule is missing, it is created.
-
-   while export-adfsclaimsrule fetches configurations "as-is" using the adfs cmdlets, the import will re-format said output to be compatible with the input format.
-   For example, an export will define `ClaimsAccepted`.  This function will convert it to `ClaimAccepted` to ensure it imports.
-.EXAMPLE
-   Import-ADFSClaimRule $myRPT
-
-   This will import a previously exported RPT rule.
-.EXAMPLE
-   Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClaimRule $_ -Server ADFS01 -Credential $mycreds
-
-   In this example a json file is imported and applied to a remote server with specific credentials.
-#>
-
-
-function Import-ADFSClaimRule
+﻿function Import-ADFSClaimRule
 {
+    <#
+    .SYNOPSIS
+    This script imports RelyingPartTrust valuewith extra authentication rules to allow for remote execution.
+
+    .DESCRIPTION
+    Imports all claim rules from Relying Party Trust, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
+    If a Claims rule is missing, it is created.
+
+    while export-adfsclaimsrule fetches configurations "as-is" using the adfs cmdlets, the import will re-format said output to be compatible with the input format.
+    For example, an export will define `ClaimsAccepted`.  This function will convert it to `ClaimAccepted` to ensure it imports.
+
+    .EXAMPLE
+    Import-ADFSClaimRule $myRPT
+
+    This will import a previously exported RPT rule.
+
+    .EXAMPLE
+    Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClaimRule $_ -Server ADFS01 -Credential $mycreds
+
+    In this example a json file is imported and applied to a remote server with specific credentials.
+    #>
+
     [CmdletBinding()]
     Param
     (

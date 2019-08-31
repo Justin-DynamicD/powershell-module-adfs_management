@@ -1,25 +1,26 @@
-﻿<#
-.Synopsis
-   This script imports ADFSClient values with extra authentication rules to allow for remote execution.
-.DESCRIPTION
-   Inspired by original work here: https://gallery.technet.microsoft.com/scriptcenter/Copy-ADFS-claim-rules-from-3c23b4bc
+﻿function Import-ADFSClient {
+  <#
+  .SYNOPSIS
+    This script imports ADFSClient values with extra authentication rules to allow for remote execution.
 
-   Imports all client rules from farm, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
-.EXAMPLE
-   Import-ADFSClient $myClient
+  .DESCRIPTION
+    Imports all client rules to farm, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
 
-   This will import a previously exported client.
-.EXAMPLE
-   Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClient $_ -Server ADFS01 -Credential $mycreds
+  .EXAMPLE
+    Import-ADFSClient
 
-   In this example a json file is imported and applied to a remote server with specific credentials.
-#>
+    This will import all clients from json format for saving in a config-as-code scenario.
 
-function Import-ADFSClient {
+  .EXAMPLE
+    Import-ADFSClient -Name MyClient -Server ADFS01 -Credential $creds
+
+    In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.
+  #>
+
   [CmdletBinding()]
   Param
   (
-    # Param1 help description
+
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
     [string] $ADFSContent,
 
