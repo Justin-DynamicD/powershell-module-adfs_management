@@ -6,7 +6,7 @@ Inspired by original work here: <https://gallery.technet.microsoft.com/scriptcen
 
 TLDR: This PowerShell module allows for export and import of various claims and other ADFS components to make it easier to control ADFS via code.  It is deliberately NOT in DSC format as those modules interact very poorly with CAPS, and instead aims to be a simple 1-line command that returns/updates data in a universally understandable format (JSON).
 
-Working at clients that have established DTAP environments, replicating client and claims rules across environments has proven to be error prone.  This module is my attempt to streamline that process.  By wrapping some of the common ADFS cmdlets in `export`, `import`, and `copy` modules, this adds the following functionality:
+Working at clients that have established DTAP environments, replicating client and claim rules across environments has proven to be error prone.  This module is an attempt to streamline that process.  By wrapping some of the common ADFS cmdlets in `export`, `import`, and `copy` modules, this adds the following functionality:
 
 - import/export accept/return json string. This makes it easier to pipe in configuration declarations, especially with non-Windows Config Management systems
 - `-credential` and `-server` parameters were added to allow remote execution

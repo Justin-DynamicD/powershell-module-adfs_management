@@ -1,27 +1,28 @@
-﻿<#
-.Synopsis
-   This script exports RelyingPartTrust valuewith extra authentication rules to allow for remote execution.
-.DESCRIPTION
-   Inspired by original work here: https://gallery.technet.microsoft.com/scriptcenter/Copy-ADFS-claim-rules-from-3c23b4bc
-
-   Exports all claim rules from Relying Party Trust, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
-.EXAMPLE
-   Export-ADFSClaimRule ProdRule | ConvertTo-Json
-
-   This will export a rule in json format for saving in a config-as-code scenario.
-.EXAMPLE
-   Export-ADFSClaimRule ProdRule -Server ADFS01 -Credential $creds | ConvertTo-Json
-
-   In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.
-#>
-
-
-function Export-ADFSClaimRule
+﻿function Export-ADFSClaimRule
 {
+  <#
+  .SYNOPSIS
+    This script exports RelyingPartTrust valuewith extra authentication rules to allow for remote execution.
+  
+  .DESCRIPTION
+    Inspired by original work here: https://gallery.technet.microsoft.com/scriptcenter/Copy-ADFS-claim-rules-from-3c23b4bc
+
+    Exports all claim rules from Relying Party Trust, with extra local/remote server and credential flags to make it more flexible in a CI/CD scenario.
+
+  .EXAMPLE
+    Export-ADFSClaimRule ProdRule | ConvertTo-Json
+
+    This will export a rule in json format for saving in a config-as-code scenario.
+
+  .EXAMPLE
+    Export-ADFSClaimRule ProdRule -Server ADFS01 -Credential $creds | ConvertTo-Json
+
+    In this example a remote server and credentials are proivided.  The credential parameter is not mandetory if current logged-in credentails will work.
+  #>
+
     [CmdletBinding()]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true, ValueFromPipeline=$false, Position=0)]
         [Alias("RPT")]
         [string] $RelyingPartyTrustName,
