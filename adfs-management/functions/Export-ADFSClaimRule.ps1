@@ -30,6 +30,9 @@
         [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [string] $Identifier,
 
+        [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [string] $PrefixIdentifier,
+
         [Parameter(Mandatory=$false, ValueFromPipeline=$false)]
         [string] $Server = $env:COMPUTERNAME,
 
@@ -63,6 +66,9 @@
         }
         if ($Identifier) {
           $claimSearch.Identifier = $Identifier
+        }
+        if ($PrefixIdentifier) {
+          $claimSearch.PrefixIdentifier = $PrefixIdentifier
         }
 
         # gather info using existing cmdlets
