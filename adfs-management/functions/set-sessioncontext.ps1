@@ -8,9 +8,6 @@
     $sessioninfo = set-sessioncontext -Method open -server server01 -credentials $mycreds
 
   .EXAMPLE
-    set-sessioncontext $SessionInfo "get-adfsclient"
-
-  .EXAMPLE
     set-sessioncontext $SessionInfo -method close
   #>
 
@@ -21,12 +18,9 @@
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
     [hashtable] $SessionInfo,
 
-    [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
-    [scriptblock] $InlineCMD,
-
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-    [ValidateSet("open","pipe","close")]
-    [string] $Method = "pipe",
+    [ValidateSet("open","close")]
+    [string] $Method = "close",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
     [string] $Server = $env:COMPUTERNAME,
@@ -61,16 +55,6 @@
       #Remove Credentials for cleanliness and return
       $pssession.Remove("Credential")
       return $pssession
-    }
-
-    pipe {
-      # Query existing ADFSClients
-      if ($SessionInfo.SourceRemote) {
-        Invoke-Command -Session $SessionInfo.SessionData -ScriptBlock $InlineCMD
-      }
-      else {
-        Invoke-Command -ScriptBlock $InlineCMD
-      }
     }
 
     close {
