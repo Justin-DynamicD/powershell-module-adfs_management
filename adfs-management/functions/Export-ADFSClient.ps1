@@ -79,10 +79,23 @@
           $returnClient = @()
           foreach ($client in $sourceClient) {
             $clientHash = @{}
-            $client.psobject.properties | ForEach-Object { $clientHash[$_.Name] = $_.Value }
+            $client.psobject.properties | ForEach-Object { 
+
+              #certain fields are custom objects and must be exported as string to ensure they import properly
+              $tmpName = $_.Name
+              $tmpValue = $_.Value
+              switch ($tmpName) {
+                ClientType { $clientHash[$tmpName] = "$($client.ClientType)" }
+                default { $clientHash[$tmpName] = $tmpValue }
+              }
+            }
+
+            #remove psremote info if present
             $clientHash.Remove("PSComputerName")
             $clientHash.Remove("PSShowComputerName")
             $clientHash.Remove("RunspaceId")
+
+            # Add the Hash
             $returnClient += $clientHash
           }
           $returnClient = $returnClient | ConvertTo-Json
