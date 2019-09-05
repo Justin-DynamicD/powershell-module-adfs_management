@@ -43,19 +43,14 @@
     Begin
     {
         $ErrorActionPreference = "Stop"
-        # create an empty hashtable and populate connection info
-        $pssession = @{}
-        if ($Credential) {
-            $pssession.Credential = $Credential
+        $params = @{
+          Method = "open"
+          Server = $Server
         }
-
-        if($Server -ne $env:COMPUTERNAME) {
-            $SourceRemote = $true
-            $pssession.ComputerName = $Server
-            $SourceSession = New-PSSession @pssession
-        }
-        else { $SourceRemote = $false }
+        If ($Credential) { $params.Credential = $Credential }
+        $sessioninfo = sessionconfig @params
     }
+
     Process
     {
         
@@ -72,9 +67,9 @@
         }
 
         # gather info using existing cmdlets
-        if ($SourceRemote){
+        if ($sessioninfo.SourceRemote){
             $command = { Get-AdfsRelyingPartyTrust @Using:claimSearch }
-            $sourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
+            $sourceRPT = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
             $sourceRPT = Get-AdfsRelyingPartyTrust @claimSearch
@@ -115,9 +110,7 @@
     End
     {
       #tear down sessions
-      if ($SourceRemote) {
-        Remove-PSSession -Session $SourceSession
-      }
+      sessionconfig -Method close -SessionInfo $sessioninfo
 
       return $returnRPT
     }
