@@ -59,9 +59,9 @@
         }
 
         # gather info using existing cmdlets
-        if ($SourceRemote){
+        if ($sessioninfo.SourceRemote){
             $command = { Get-AdfsClient @Using:clientSearch }
-            $SourceClient = Invoke-Command -Session $SourceSession -ScriptBlock $command
+            $SourceClient = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
             $SourceClient = Get-AdfsClient @clientSearch
