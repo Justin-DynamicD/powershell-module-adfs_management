@@ -38,7 +38,7 @@
     Begin
     {
         $ErrorActionPreference = "Stop"
-        params = @{
+        $params = @{
           Method = "open"
           Server = $Server
         }

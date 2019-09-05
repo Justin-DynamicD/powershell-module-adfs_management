@@ -40,7 +40,7 @@
       }
     
       # Establish Source connections
-      if (($Server -ne $env:COMPUTERNAME) -and ($Server -ne (Get-WmiObject win32_computersystem).DNSHostName+"."+(Get-WmiObject win32_computersystem).Domain)) {
+      if ($Server -ne $env:COMPUTERNAME) {
         $pssession.ComputerName = $Server
         $newpssession = New-PSSession @pssession
 
