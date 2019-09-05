@@ -4,10 +4,10 @@
     sets up and tears down remote pssessions.
 
   .EXAMPLE
-    $sessioninfo = set-sessioncontext -Method open -server server01 -credentials $mycreds
+    $sessioninfo = sessionconfig -Method open -server server01 -credentials $mycreds
 
   .EXAMPLE
-    set-sessioncontext $SessionInfo -method close
+    sessionconfig $SessionInfo -method close
   #>
 
   [CmdletBinding()]
