@@ -41,25 +41,20 @@
       Write-Error "Content was not supplied as valid JSON, aborting" -ErrorAction Stop
     }
 
-    # create an empty hashtable and populate connection info
-    $pssession = @{ }
-    if ($Credential) {
-      $pssession.Credential = $Credential
+    # login to remote server if nessisary
+    $params = @{
+      Method = "open"
+      Server = $Server
     }
-
-    # Establish Source connections  
-    if ($Server -ne $env:COMPUTERNAME) {
-      $SourceRemote = $true
-      $pssession.ComputerName = $Server
-      $SourceSession = New-PSSession @pssession
-    }
-    else { $SourceRemote = $false }
+    If ($Credential) { $params.Credential = $Credential }
+    $sessioninfo = sessionconfig @params
   }
+
   Process {
 
     # Query existing ADFSClients
-    if ($SourceRemote) {
-      $sourceClient = Invoke-Command -Session $SourceSession -ScriptBlock "Get-ADFSClient"
+    if ($sessioninfo.SourceRemote) {
+      $sourceClient = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock "Get-ADFSClient"
     }
     else {
       $sourceClient = Get-AdfsClient
@@ -94,9 +89,9 @@
  
       # create missing ClientID
       If ($sourceClient.ClientID -notcontains $adfsClient.ClientID) {
-        if ($SourceRemote) {
+        if ($sessioninfo.SourceRemote) {
           $command = { Add-AdfsClient @Using:clientAddSplat @Using:clientCommonSplat }
-          Invoke-Command -Session $SourceSession -ScriptBlock $command
+          Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
           Add-AdfsClient @clientAddSplat @clientCommonSplat
@@ -105,9 +100,9 @@
 
       # Update existing ClientID
       Else {
-        if ($SourceRemote) {
+        if ($sessioninfo.SourceRemote) {
           $command = { Set-AdfsClient @Using:clientSetSplat @Using:clientCommonSplat}
-          Invoke-Command -Session $SourceSession -ScriptBlock $command
+          Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
           Set-AdfsClient @clientSetSplat @clientCommonSplat
@@ -117,18 +112,18 @@
       # Toggle Enable/Disable as needed
       switch ($adfsClient.Enabled) {
         $true {
-          if ($SourceRemote) {
+          if ($sessioninfo.SourceRemote) {
             $command = { Enable-AdfsClient @Using:clientSetSplat }
-            Invoke-Command -Session $SourceSession -ScriptBlock $command
+            Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
           }
           else {
             Enable-AdfsClient @clientSetSplat
           } # true
         }
         $false {
-          if ($SourceRemote) {
+          if ($sessioninfo.SourceRemote) {
             $command = { Disable-AdfsClient @Using:clientSetSplat }
-            Invoke-Command -Session $SourceSession -ScriptBlock $command
+            Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
           }
           else {
             Disable-AdfsClient @clientSetSplat
@@ -140,8 +135,6 @@
 
   End {
     #tear down sessions
-    if ($SourceRemote) {
-      Remove-PSSession -Session $SourceSession
-    }
+    sessionconfig -Method close -SessionInfo $sessioninfo
   }
 }

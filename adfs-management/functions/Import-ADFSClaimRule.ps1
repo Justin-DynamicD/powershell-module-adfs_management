@@ -46,26 +46,22 @@
       Write-Error "Content was not supplied as valid JSON, aborting" -ErrorAction Stop
     }
 
-    # create an empty hashtable and populate connection info
-    $pssession = @{ }
-    if ($Credential) {
-      $pssession.Credential = $Credential
+    # login to remote server if nessisary
+    $params = @{
+      Method = "open"
+      Server = $Server
     }
-
-    if ($Server -ne $env:COMPUTERNAME) {
-      $SourceRemote = $true
-      $pssession.ComputerName = $Server
-      $SourceSession = New-PSSession @pssession
-    }
-    else { $SourceRemote = $false }
+    If ($Credential) { $params.Credential = $Credential }
+    $sessioninfo = sessionconfig @params
   }
+
   Process {
 
     foreach ($adfsRPT in $convertedContent) {
       # Query for existing trust
-      if ($SourceRemote) {
+      if ($sessioninfo.SourceRemote) {
         $command = { Get-AdfsRelyingPartyTrust -Name $Using:adfsRPT.Name }
-        $SourceRPT = Invoke-Command -Session $SourceSession -ScriptBlock $command
+        $SourceRPT = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
       }
       else {
         $SourceRPT = Get-AdfsRelyingPartyTrust -Name $adfsRPT.Name
@@ -74,10 +70,11 @@
       # If the target RPT is missing, add it
       if (!$SourceRPT) {
         Write-Output "RPT does not exist, creating..."
-        if ($SourceRemote) {
+        if ($sessioninfo.SourceRemote) {
           $command = { Add-AdfsRelyingPartyTrust -Name $Using:adfsRPT.Name -Identifier $Using:adfsRPT.Identifier }
-          Invoke-Command -Session $SourceSession -ScriptBlock $command
-          $SourceRPT = Get-AdfsRelyingPartyTrust -Name $adfsRPT.Name
+          Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+          $command = { Get-AdfsRelyingPartyTrust -Name $Using:adfsRPT.Name }
+          $SourceRPT = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
           Add-AdfsRelyingPartyTrust -Name $adfsRPT.Name -Identifier $adfsRPT.Identifier
@@ -184,19 +181,18 @@
 
       # Finally work can be done.
       Write-Output "importing content"
-      if ($SourceRemote) {
+      if ($sessioninfo.SourceRemote) {
         $command = { Set-AdfsRelyingPartyTrust @Using:RPTSplat }
-        Invoke-Command -Session $SourceSession -ScriptBlock $command
+        Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
       }
       else {
         Set-AdfsRelyingPartyTrust @RPTSplat
       }
     } # End RPT Loop
   }
+
   End {
     #tear down sessions
-    if ($SourceRemote) {
-      Remove-PSSession -Session $SourceSession
-    }
+    sessionconfig -Method close -SessionInfo $sessioninfo
   }
 }
