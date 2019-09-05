@@ -42,7 +42,7 @@
           Method = "open"
           Server = $Server
         }
-        If ($Credential) { $params.Credentials = $Credential }
+        If ($Credential) { $params.Credential = $Credential }
         $sessioninfo = sessionconfig @params
     }
 
