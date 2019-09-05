@@ -1,8 +1,7 @@
-﻿function set-sessioncontext {
+﻿function sessionconfig {
   <#
   .DESCRIPTION
     sets up and tears down remote pssessions.
-    passes a cmd through as needed
 
   .EXAMPLE
     $sessioninfo = set-sessioncontext -Method open -server server01 -credentials $mycreds
@@ -20,7 +19,7 @@
 
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
     [ValidateSet("open","close")]
-    [string] $Method = "close",
+    [string] $Method = "open",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
     [string] $Server = $env:COMPUTERNAME,
@@ -39,9 +38,9 @@
       if ($Credential) {
         $pssession.Credential = $Credential
       }
-
-      # Establish Source connections  
-      if ($Server -ne $env:COMPUTERNAME) {
+    
+      # Establish Source connections
+      if (($Server -ne $env:COMPUTERNAME) -and ($Server -ne (Get-WmiObject win32_computersystem).DNSHostName+"."+(Get-WmiObject win32_computersystem).Domain)) {
         $pssession.ComputerName = $Server
         $newpssession = New-PSSession @pssession
 

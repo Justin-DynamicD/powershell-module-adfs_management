@@ -38,21 +38,14 @@
     Begin
     {
         $ErrorActionPreference = "Stop"
-
-        # create an empty hashtable and populate connection info
-        $pssession = @{}
-        if ($Credential) {
-            $pssession.Credential = $Credential
+        params = @{
+          Method = "open"
+          Server = $Server
         }
-
-        # Establish Source connections  
-        if($Server -ne $env:COMPUTERNAME) {
-            $SourceRemote = $true
-            $pssession.ComputerName = $Server
-            $SourceSession = New-PSSession @pssession
-        }
-        else { $SourceRemote = $false }
+        If ($Credential) { $params.Credentials = $Credential }
+        $sessioninfo = sessionconfig @params
     }
+
     Process
     {
 
@@ -108,9 +101,7 @@
     End
     {
       #tear down sessions
-      if ($SourceRemote) {
-        Remove-PSSession -Session $SourceSession
-      }
+      sessionconfig -Method close -SessionInfo $sessioninfo
 
       return $returnClient
     }

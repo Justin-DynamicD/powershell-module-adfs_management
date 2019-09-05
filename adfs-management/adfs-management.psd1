@@ -12,7 +12,7 @@
       '.\functions\Export-ADFSClient.ps1',
       '.\functions\Import-ADFSClaimRule.ps1',
       '.\functions\Import-ADFSClient.ps1',
-      '.\functions\set-sessioncontext.ps1'
+      '.\functions\sessionconfig.ps1'
     )
     FunctionsToExport = @(
       'Copy-ADFSClaimRule',
