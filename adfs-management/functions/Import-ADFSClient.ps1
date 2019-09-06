@@ -54,7 +54,7 @@
 
     # Query existing ADFSClients
     if ($sessioninfo.SourceRemote) {
-      $sourceClient = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock "Get-ADFSClient"
+      $sourceClient = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock { Get-ADFSClient }
     }
     else {
       $sourceClient = Get-AdfsClient
