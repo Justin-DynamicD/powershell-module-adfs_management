@@ -55,12 +55,14 @@
           $returnProperties = @{}
           $SourceProperties.psobject.properties | ForEach-Object { 
 
-            #certain fields are custom objects and must be exported as string to ensure they import properly
+            # some parameters are not simple strings and need conversion
+            # Others are informational only and should be trimmed
+            # Do that work here.
             $tmpName = $_.Name
             $tmpValue = $_.Value
             switch ($tmpName) {
               ExtranetObservationWindow {
-                # time timespan object down to relevent data only
+                # trim timespan object down to relevent data only
                 $timeSpanObject = New-Object -TypeName PSObject -Property @{
                   Days = $tmpValue.Days
                   Hours = $tmpValue.Hours
@@ -69,6 +71,7 @@
                 }
                 $returnProperties[$tmpName] = $timeSpanObject
               }
+              PersistentSsoCutoffTime { $importSplat[$tmpName] = $tmpValue.Date }
               default { $returnProperties[$tmpName] = $tmpValue }
             }
           }

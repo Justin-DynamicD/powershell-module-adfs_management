@@ -60,7 +60,7 @@
     $ConvertedContent.psobject.properties | ForEach-Object { 
       # some parameters are not simple string imports.
       # Others have parameter naming discrepencies.
-      # Track it all here.
+      # Do that work here.
       $tmpName = $_.Name
       $tmpValue = $_.Value
       switch ($tmpName) {
@@ -73,10 +73,11 @@
             Minutes = $tmpValue.Minutes
             Seconds = $tmpValue.Seconds
           }
-          $importSplat.ExtranetObservationWindow = New-TimeSpan @timespanSplat
+          $importSplat[$tmpName] = New-TimeSpan @timespanSplat
         }
         KmsiEnabled { $importSplat.EnableKmsi = $tmpValue }
         LoopDetectionEnabled {$importSplat.EnableLoopDetection = $tmpValue }
+        PersistentSsoCutoffTime { $importSplat[$tmpName] = Get-Date -Date $tmpValue }
         PersistentSsoEnabled {$importSplat.EnablePersistentSso = $tmpValue }
         InstalledLanguage {} # has no equivelent import value
         PasswordValidationDelayInMinutes {} # has no equivelent import value
