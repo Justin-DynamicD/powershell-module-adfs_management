@@ -73,11 +73,19 @@
               }
               ClientCertRevocationCheck { $returnProperties[$tmpName] = "$($SourceProperties.ClientCertRevocationCheck)" }
               ExtendedProtectionTokenCheck { $returnProperties[$tmpName] = "$($SourceProperties.ExtendedProtectionTokenCheck)" }
-              ContactPerson { $returnProperties[$tmpName] = convertperson -Method tocustom -Contact $tmpValue }
-              OrganizationInfo { $returnProperties[$tmpName] = convertorganization -Method tocustom -Organization $tmpValue }
+              ContactPerson {} # skip this, we transform it later
+              OrganizationInfo {} # skip this, we transform it later
               PersistentSsoCutoffTime { [string]$returnProperties[$tmpName] = $tmpValue.Date }
               default { $returnProperties[$tmpName] = $tmpValue }
             }
+          }
+
+          # apply Contact and Org, as those require custom objects to be defined
+          If ($SourceProperties.ContactPerson) {
+            convertperson -Method getcustom -SessionInfo $sessioninfo
+          }
+          If ($SourceProperties.OrganizationInfo) {
+            convertorganization -Method getcustom -SessionInfo $sessioninfo
           }
 
           #remove psremote info if present

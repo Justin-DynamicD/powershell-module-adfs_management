@@ -4,8 +4,8 @@
   Param
   (
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-    [ValidateSet("tocustom","applycustom")]
-    [string] $Method = "tocustom",
+    [ValidateSet("getcustom","applycustom")]
+    [string] $Method = "getcustom",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
     [PsObject] $Contact,
@@ -19,29 +19,38 @@
   $customContact = $null
   
   switch ($Method) {
-    tocustom {
+    getcustom {
 
-      #Nothing provided, nothing returned
-      If ($null -eq $Contact) { return $null; end }
-
-      # trim object down to configuratble entries only
-      $customContact = New-Object -TypeName PSObject 
-      $noteCount = 0
-      $Contact.psobject.properties | ForEach-Object {
-        $tmpName = $_.Name
-        $tmpValue = $_.Value
-        If ($tmpValue) {
-          switch ($tmpName) {
-            ContactType {} # ensure we skip this value
-            default { 
-              $customContact | Add-Member NoteProperty -Name $tmpName -Value $tmpValue
-              $noteCount ++
+      # this command block needs to run locally and transform the object to a generic hashtable
+      $command = {
+        $Contact = (Get-AdfsProperties).ContactPerson
+        $customContact = New-Object -TypeName PSObject 
+        $noteCount = 0
+        $Contact.psobject.properties | ForEach-Object {
+          $tmpName = $_.Name
+          $tmpValue = $_.Value
+          If ($tmpValue) {
+            switch ($tmpName) {
+              ContactType {} # ensure we skip this value
+              default { 
+                $customContact | Add-Member NoteProperty -Name $tmpName -Value $tmpValue
+                $noteCount ++
+              }
             }
           }
         }
+        #check the number of prperties added; if 0 then null the object
+        If ($noteCount -eq 0) { $customContact = $null }
+        return $customContact
       }
-      #check the number of prperties added; if 0 then null the object
-      If ($noteCount -eq 0) { $customContact = $null }
+
+      # use sessioninfo to determine local or remote execution
+      if ($Sessioninfo.SourceRemote){
+        $customContact = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+      }
+      else {
+        $customContact = Invoke-Command -ScriptBlock $command
+      }
       return $customContact
     }
 
