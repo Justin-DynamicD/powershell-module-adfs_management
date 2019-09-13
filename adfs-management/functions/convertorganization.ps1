@@ -8,13 +8,16 @@
     [string] $Method = "tocustom",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
-    [PsObject] $organization
+    [PsObject] $Organization,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $SessionInfo = @{ SourceRemote = $false }
 
   )
 
   $ErrorActionPreference = "Stop"
 
-  If ($null -eq $organization) { return $null; end }
+  If ($null -eq $Organization) { return $null; end }
   $customOrganization = $null
 
   switch ($Method) {
@@ -22,7 +25,7 @@
       # trim object down to configuratble entries only
       $customOrganization = New-Object -TypeName PSObject 
       $noteCount = 0
-      $organization.psobject.properties | ForEach-Object {
+      $Organization.psobject.properties | ForEach-Object {
         $tmpName = $_.Name
         $tmpValue = $_.Value
         If ($tmpValue) {
@@ -37,7 +40,7 @@
     fromcustom {
 
       $splatOrganization = @{}
-      $organization.psobject.properties | ForEach-Object {
+      $Organization.psobject.properties | ForEach-Object {
         $tmpName = $_.Name
         $tmpValue = $_.Value
         If ($tmpValue) {
@@ -46,7 +49,13 @@
       }
       # only attempt to build splat isn't emptyu
       If ($splatOrganization -ne @{}) {
-        $customOrganization = New-AdfsOrganization @splatOrganization
+        if ($Sessioninfo.SourceRemote){
+          $command = { New-AdfsOrganization @Using:splatOrganization }
+          $customOrganization = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+        }
+        else {
+          $customOrganization = New-AdfsOrganization @splatOrganization
+        }
       }
     }
   }

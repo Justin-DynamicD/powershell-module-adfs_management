@@ -6,9 +6,6 @@
     Copyright = 'GNU General Public License v3.0'
     Description = 'Contains functions that help export and import settings in ADFS.  Helps with IaC scenarios.'
     PowerShellVersion = '4.0'
-    RequiredModules = @(
-      @{ModuleName="ADFS"; ModuleVersion="1.0.0.0"}
-    )
     NestedModules = @(
       '.\functions\Convertorganization.ps1',
       '.\functions\Convertperson.ps1',

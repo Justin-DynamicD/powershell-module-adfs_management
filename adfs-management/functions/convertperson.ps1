@@ -8,7 +8,10 @@
     [string] $Method = "tocustom",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
-    [PsObject] $Contact
+    [PsObject] $Contact,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $SessionInfo = @{ SourceRemote = $false }
 
   )
 
@@ -56,7 +59,13 @@
       }
       # only attempt to build splat isn't emptyu
       If ($splatPerson -ne @{}) {
-        $customContact = New-AdfsContactPerson @splatPerson
+        if ($Sessioninfo.SourceRemote){
+          $command = { New-AdfsContactPerson @Using:splatPerson }
+          $customContact = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+        }
+        else {
+          $customContact = New-AdfsContactPerson @splatPerson
+        }
       }
     }
   }
