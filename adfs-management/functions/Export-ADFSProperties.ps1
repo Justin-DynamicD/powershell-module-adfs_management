@@ -71,7 +71,7 @@
                 }
                 $returnProperties[$tmpName] = $timeSpanObject
               }
-              PersistentSsoCutoffTime { $importSplat[$tmpName] = $tmpValue.Date }
+              PersistentSsoCutoffTime { $returnProperties[$tmpName] = $tmpValue.Date }
               default { $returnProperties[$tmpName] = $tmpValue }
             }
           }
