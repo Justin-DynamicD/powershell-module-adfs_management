@@ -71,6 +71,8 @@
                 }
                 $returnProperties[$tmpName] = $timeSpanObject
               }
+              ContactPerson { $returnProperties[$tmpName] = convertperson -Method tocustom -Contact $tmpValue }
+              OrganizationInfo { $returnProperties[$tmpName] = convertorganization -Method tocustom -Organization $tmpValue }
               PersistentSsoCutoffTime { [string]$returnProperties[$tmpName] = $tmpValue.Date }
               default { $returnProperties[$tmpName] = $tmpValue }
             }

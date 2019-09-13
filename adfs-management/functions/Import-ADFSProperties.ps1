@@ -70,28 +70,6 @@
       $ConvertedContent.PersistentSsoCutoffTime = Get-Date -Date $ConvertedContent.PersistentSsoCutoffTime
     }
 
-    Write-Verbose "translating Organization..."
-    If ($null -ne $ConvertedContent.OrganizationInfo) {
-      $splat = @{}
-      $ConvertedContent.OrganizationInfo.psobject.properties | ForEach-Object {
-        If ($null -ne $_Value) {
-          $splat[$_.Name] = $_.Value
-        }
-      }
-      $ConvertedContent.OrganizationInfo = New-AdfsOrganization @splat
-    }
-
-    Write-Verbose "translating ContactPerson..."
-    If ($null -ne $ConvertedContent.ContactPerson) {
-      $splat = @{}
-      $ConvertedContent.ContactPerson.psobject.properties | ForEach-Object {
-        If ($null -ne $_Value) {
-          $splat[$_.Name] = $_.Value
-        }
-      }
-      $ConvertedContent.ContactPerson = New-AdfsContactPerson @splat
-    }
-
     # Some attributes have parameter naming discrepencies.
     # Do that work here.
     $importSplat = @{}
@@ -100,9 +78,11 @@
       $tmpValue = $_.Value
       switch ($tmpName) {
         CertificateSharingContainer {} # has no equivelent import value
+        ContactPerson { $importSplat[$tmpName] = convertperson -Method fromcustom -Contact $tmpValue }
         ExtranetLockoutEnabled { $importSplat.EnableExtranetLockout = $tmpValue }
         KmsiEnabled { $importSplat.EnableKmsi = $tmpValue }
         LoopDetectionEnabled {$importSplat.EnableLoopDetection = $tmpValue }
+        OrganizationInfo { $importSplat[$tmpName] = convertorganization -Method fromcustom -Organization $tmpValue }
         PersistentSsoEnabled {$importSplat.EnablePersistentSso = $tmpValue }
         InstalledLanguage {} # has no equivelent import value
         PasswordValidationDelayInMinutes {} # has no equivelent import value
