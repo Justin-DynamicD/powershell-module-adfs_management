@@ -80,12 +80,12 @@
             }
           }
 
-          # apply Contact and Org, as those require custom objects to be defined
+          # process Contact and Org, as those require custom objects to be defined
           If ($SourceProperties.ContactPerson) {
-            convertperson -Method getcustom -SessionInfo $sessioninfo
+            $returnProperties.ContactPerson = convertperson -Method getcustom -SessionInfo $sessioninfo
           }
           If ($SourceProperties.OrganizationInfo) {
-            convertorganization -Method getcustom -SessionInfo $sessioninfo
+            $returnProperties.OrganizationInfo = convertorganization -Method getcustom -SessionInfo $sessioninfo
           }
 
           #remove psremote info if present

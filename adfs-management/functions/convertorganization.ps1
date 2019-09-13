@@ -4,8 +4,8 @@
   Param
   (
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-    [ValidateSet("tocustom","applycustom")]
-    [string] $Method = "tocustom",
+    [ValidateSet("getcustom","applycustom")]
+    [string] $Method = "getcustom",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
     [PsObject] $Organization,
