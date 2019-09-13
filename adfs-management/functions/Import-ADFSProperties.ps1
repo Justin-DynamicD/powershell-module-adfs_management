@@ -58,12 +58,23 @@
 
     $importSplat = @{}
     $ConvertedContent.psobject.properties | ForEach-Object { 
-      # some parameters are not named identically to thier respective property.  This allows translation
+      # some parameters are not simple string imports.
+      # Others have parameter naming discrepencies.
+      # Track it all here.
       $tmpName = $_.Name
       $tmpValue = $_.Value
       switch ($tmpName) {
         CertificateSharingContainer {} # has no equivelent import value
         ExtranetLockoutEnabled { $importSplat.EnableExtranetLockout = $tmpValue }
+        ExtranetObservationWindow {
+          $timespanSplat = @{
+            Days = $tmpValue.Days
+            Hours = $tmpValue.Hours
+            Minutes = $tmpValue.Minutes
+            Seconds = $tmpValue.Seconds
+          }
+          $importSplat.ExtranetObservationWindow = New-TimeSpan @timespanSplat
+        }
         KmsiEnabled { $importSplat.EnableKmsi = $tmpValue }
         LoopDetectionEnabled {$importSplat.EnableLoopDetection = $tmpValue }
         PersistentSsoEnabled {$importSplat.EnablePersistentSso = $tmpValue }

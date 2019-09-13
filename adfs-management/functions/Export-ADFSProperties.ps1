@@ -69,6 +69,16 @@
           $returnProperties.Remove("PSShowComputerName")
           $returnProperties.Remove("RunspaceId")
 
+          #trim timespan information on running data
+          $returnProperties.ExtranetObservationWindow.Remove("Ticks")
+          $returnProperties.ExtranetObservationWindow.Remove("Milliseconds")
+          $returnProperties.ExtranetObservationWindow.Remove("TotalDays")
+          $returnProperties.ExtranetObservationWindow.Remove("TotalHours")
+          $returnProperties.ExtranetObservationWindow.Remove("TotalMilliseconds")
+          $returnProperties.ExtranetObservationWindow.Remove("TotalMinutes")
+          $returnProperties.ExtranetObservationWindow.Remove("TotalSeconds")
+
+          # convert the whole thing down to JSON
           $returnProperties = $returnProperties | ConvertTo-Json
         }
         Else {
