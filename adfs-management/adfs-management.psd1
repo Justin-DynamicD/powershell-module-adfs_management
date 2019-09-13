@@ -10,16 +10,20 @@
       '.\functions\Copy-ADFSClaimRule.ps1',
       '.\functions\Export-ADFSClaimRule.ps1',
       '.\functions\Export-ADFSClient.ps1',
+      '.\functions\Export-ADFSProperties.ps1',
       '.\functions\Import-ADFSClaimRule.ps1',
       '.\functions\Import-ADFSClient.ps1',
+      '.\functions\Import-ADFSProperties.ps1',
       '.\functions\sessionconfig.ps1'
     )
     FunctionsToExport = @(
       'Copy-ADFSClaimRule',
       'Export-ADFSClaimRule',
       'Export-ADFSClient',
+      'Export-ADFSProperties',
       'Import-ADFSClaimRule',
-      'Import-ADFSClient'
+      'Import-ADFSClient',
+      'Import-ADFSProperties'
     )
     PrivateData = @{
       PSData = @{
