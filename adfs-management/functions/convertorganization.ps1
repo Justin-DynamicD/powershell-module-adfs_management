@@ -4,7 +4,7 @@
   Param
   (
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-    [ValidateSet("tocustom","fromcustom")]
+    [ValidateSet("tocustom","applycustom")]
     [string] $Method = "tocustom",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
@@ -16,12 +16,14 @@
   )
 
   $ErrorActionPreference = "Stop"
-
-  If ($null -eq $Organization) { return $null; end }
   $customOrganization = $null
 
   switch ($Method) {
     tocustom {
+
+      #Nothing provided, nothing returned
+      If ($null -eq $Organization) { return $null; end }
+
       # trim object down to configuratble entries only
       $customOrganization = New-Object -TypeName PSObject 
       $noteCount = 0
@@ -35,9 +37,22 @@
       }
       #check the number of properties added; if 0 then null the object
       If ($noteCount -eq 0) { $customOrganization = $null }
+      return $customOrganization
     }
 
-    fromcustom {
+    applycustom {
+
+      # If null is passed, simply apply to target
+      If ($null -eq $Organization) {
+        if ($Sessioninfo.SourceRemote){
+          $command = { Set-AdfsProperties -OrganizationInfo $null }
+          Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+        }
+        else {
+          Set-AdfsProperties -OrganizationInfo $null
+        }
+        end
+      }
 
       $splatOrganization = @{}
       $Organization.psobject.properties | ForEach-Object {
@@ -50,15 +65,14 @@
       # only attempt to build splat isn't emptyu
       If ($splatOrganization -ne @{}) {
         if ($Sessioninfo.SourceRemote){
-          $command = { New-AdfsOrganization @Using:splatOrganization }
-          $customOrganization = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+          $command = { Set-AdfsProperties -OrganizationInfo (New-AdfsOrganization @Using:splatOrganization) }
+          Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
-          $customOrganization = New-AdfsOrganization @splatOrganization
+          Set-AdfsProperties -OrganizationInfo (New-AdfsOrganization @splatOrganization)
         }
       }
     }
   }
 
-  return $customOrganization
 }

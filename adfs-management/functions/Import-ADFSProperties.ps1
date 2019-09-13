@@ -78,11 +78,11 @@
       $tmpValue = $_.Value
       switch ($tmpName) {
         CertificateSharingContainer {} # has no equivelent import value
-        ContactPerson { $importSplat[$tmpName] = convertperson -Method fromcustom -Contact $tmpValue }
+        ContactPerson {} # applied later due to custom object
         ExtranetLockoutEnabled { $importSplat.EnableExtranetLockout = $tmpValue }
         KmsiEnabled { $importSplat.EnableKmsi = $tmpValue }
         LoopDetectionEnabled {$importSplat.EnableLoopDetection = $tmpValue }
-        OrganizationInfo { $importSplat[$tmpName] = convertorganization -Method fromcustom -Organization $tmpValue }
+        OrganizationInfo {} # applied later due to custom object
         PersistentSsoEnabled {$importSplat.EnablePersistentSso = $tmpValue }
         InstalledLanguage {} # has no equivelent import value
         PasswordValidationDelayInMinutes {} # has no equivelent import value
@@ -99,6 +99,14 @@
     else {
       Set-AdfsProperties @importSplat
     } # false
+
+    # apply Contact and Org, as those require custom objects to be defined
+    If ($ConvertedContent.ContactPerson) {
+      convertperson -Method applycustom -Contact $tmpValue -SessionInfo $sessioninfo
+    }
+    If ($ConvertedContent.OrganizationInfo) {
+      convertorganization -Method applycustom -Organization $tmpValue -SessionInfo $sessioninfo
+    }
 
   }
 

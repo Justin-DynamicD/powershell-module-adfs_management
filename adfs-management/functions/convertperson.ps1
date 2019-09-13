@@ -4,7 +4,7 @@
   Param
   (
     [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-    [ValidateSet("tocustom","fromcustom")]
+    [ValidateSet("tocustom","applycustom")]
     [string] $Method = "tocustom",
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
@@ -16,12 +16,13 @@
   )
 
   $ErrorActionPreference = "Stop"
-
-  If ($null -eq $Contact) { return $null; end }
   $customContact = $null
-
+  
   switch ($Method) {
     tocustom {
+
+      #Nothing provided, nothing returned
+      If ($null -eq $Contact) { return $null; end }
 
       # trim object down to configuratble entries only
       $customContact = New-Object -TypeName PSObject 
@@ -41,9 +42,22 @@
       }
       #check the number of prperties added; if 0 then null the object
       If ($noteCount -eq 0) { $customContact = $null }
+      return $customContact
     }
 
-    fromcustom {
+    applycustom {
+
+      # If null is passed, simply apply to target
+      If ($null -eq $Contact) {
+        if ($Sessioninfo.SourceRemote){
+          $command = { Set-AdfsProperties -ContactPerson $null }
+          Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+        }
+        else {
+          Set-AdfsProperties -ContactPerson $null
+        }
+        end
+      }
 
       $splatPerson = @{}
       $Contact.psobject.properties | ForEach-Object {
@@ -57,18 +71,16 @@
           }
         }
       }
-      # only attempt to build splat isn't emptyu
+      # only attempt to apply if splat isn't empty
       If ($splatPerson -ne @{}) {
         if ($Sessioninfo.SourceRemote){
-          $command = { New-AdfsContactPerson @Using:splatPerson }
-          $customContact = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+          $command = { Set-AdfsProperties -ContactPerson (New-AdfsContactPerson @Using:splatPerson) }
+          Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
-          $customContact = New-AdfsContactPerson @splatPerson
+          Set-AdfsProperties -ContactPerson (New-AdfsContactPerson @splatPerson)
         }
       }
     }
   }
-
-  return $customContact
 }
