@@ -67,7 +67,7 @@
 
     Write-Verbose "translating DateTime..."
     If ($null -ne $ConvertedContent.PersistentSsoCutoffTime) { 
-      $ConvertedContent.PersistentSsoCutoffTime = Get-Date -Date $tmpValue
+      $ConvertedContent.PersistentSsoCutoffTime = Get-Date -Date $ConvertedContent.PersistentSsoCutoffTime
     }
 
     Write-Verbose "translating Organization..."
