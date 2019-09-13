@@ -63,7 +63,7 @@
       $tmpValue = $_.Value
       switch ($tmpName) {
         CertificateSharingContainer {} # has no equivelent import value
-        ExtranetLockoutEnabled { importSplat.EnableExtranetLockout = $tmpValue }
+        ExtranetLockoutEnabled { $importSplat.EnableExtranetLockout = $tmpValue }
         KmsiEnabled { $importSplat.EnableKmsi = $tmpValue }
         LoopDetectionEnabled {$importSplat.EnableLoopDetection = $tmpValue }
         PersistentSsoEnabled {$importSplat.EnablePersistentSso = $tmpValue }
