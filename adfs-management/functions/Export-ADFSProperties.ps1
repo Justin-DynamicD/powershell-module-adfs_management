@@ -59,7 +59,16 @@
             $tmpName = $_.Name
             $tmpValue = $_.Value
             switch ($tmpName) {
-              # ClientType { $returnProperties[$tmpName] = "$($SourceProperties.ClientType)" }
+              ExtranetObservationWindow {
+                # time timespan object down to relevent data only
+                $timeSpanObject = New-Object -TypeName PSObject -Property @{
+                  Days = $tmpValue.Days
+                  Hours = $tmpValue.Hours
+                  Minutes = $tmpValue.Minutes
+                  Seconds = $tmpValue.Seconds
+                }
+                $returnProperties[$tmpName] = $timeSpanObject
+              }
               default { $returnProperties[$tmpName] = $tmpValue }
             }
           }
@@ -68,15 +77,6 @@
           $returnProperties.Remove("PSComputerName")
           $returnProperties.Remove("PSShowComputerName")
           $returnProperties.Remove("RunspaceId")
-
-          #trim timespan information on running data
-          $returnProperties.ExtranetObservationWindow.Remove("Ticks")
-          $returnProperties.ExtranetObservationWindow.Remove("Milliseconds")
-          $returnProperties.ExtranetObservationWindow.Remove("TotalDays")
-          $returnProperties.ExtranetObservationWindow.Remove("TotalHours")
-          $returnProperties.ExtranetObservationWindow.Remove("TotalMilliseconds")
-          $returnProperties.ExtranetObservationWindow.Remove("TotalMinutes")
-          $returnProperties.ExtranetObservationWindow.Remove("TotalSeconds")
 
           # convert the whole thing down to JSON
           $returnProperties = $returnProperties | ConvertTo-Json
