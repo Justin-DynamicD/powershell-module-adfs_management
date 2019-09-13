@@ -7,8 +7,8 @@
     Description = 'Contains functions that help export and import settings in ADFS.  Helps with IaC scenarios.'
     PowerShellVersion = '4.0'
     NestedModules = @(
-      '.\functions\Convertorganization.ps1',
-      '.\functions\Convertperson.ps1',
+      '.\functions\convertorganization.ps1',
+      '.\functions\convertperson.ps1',
       '.\functions\Copy-ADFSClaimRule.ps1',
       '.\functions\Export-ADFSClaimRule.ps1',
       '.\functions\Export-ADFSClient.ps1',

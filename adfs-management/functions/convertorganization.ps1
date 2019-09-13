@@ -19,24 +19,33 @@
   $customOrganization = $null
 
   switch ($Method) {
-    tocustom {
+    getcustom {
 
-      #Nothing provided, nothing returned
-      If ($null -eq $Organization) { return $null; end }
-
-      # trim object down to configuratble entries only
-      $customOrganization = New-Object -TypeName PSObject 
-      $noteCount = 0
-      $Organization.psobject.properties | ForEach-Object {
-        $tmpName = $_.Name
-        $tmpValue = $_.Value
-        If ($tmpValue) {
-          $customContact | Add-Member NoteProperty -Name $tmpName -Value $tmpValue
-          $noteCount ++
+      # this command block needs to run locally and transform the object to generic
+      $command = {
+        $Organization = (Get-AdfsProperties).OrganizationInfo
+        $customOrganization = New-Object -TypeName PSObject 
+        $noteCount = 0
+        $Organization.psobject.properties | ForEach-Object {
+          $tmpName = $_.Name
+          $tmpValue = $_.Value
+          If ($tmpValue) {
+            $customOrganization | Add-Member NoteProperty -Name $tmpName -Value $tmpValue
+            $noteCount ++
+          }
         }
+        #check the number of prperties added; if 0 then null the object
+        If ($noteCount -eq 0) { $customOrganization = $null }
+        return $customOrganization
       }
-      #check the number of properties added; if 0 then null the object
-      If ($noteCount -eq 0) { $customOrganization = $null }
+
+      # use sessioninfo to determine local or remote execution
+      if ($Sessioninfo.SourceRemote){
+        $customOrganization = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
+      }
+      else {
+        $customOrganization = Invoke-Command -ScriptBlock $command
+      }
       return $customOrganization
     }
 
