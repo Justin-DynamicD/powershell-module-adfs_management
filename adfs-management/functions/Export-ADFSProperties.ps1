@@ -71,6 +71,7 @@
                 }
                 $returnProperties[$tmpName] = $timeSpanObject
               }
+              ClientCertRevocationCheck { $returnProperties[$tmpName] = "$($SourceProperties.ClientCertRevocationCheck)" }
               ContactPerson { $returnProperties[$tmpName] = convertperson -Method tocustom -Contact $tmpValue }
               OrganizationInfo { $returnProperties[$tmpName] = convertorganization -Method tocustom -Organization $tmpValue }
               PersistentSsoCutoffTime { [string]$returnProperties[$tmpName] = $tmpValue.Date }
