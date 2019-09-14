@@ -17,3 +17,4 @@ jobs:
     parameters:
       module_name: adfs-management
       module_version: $(majorMinorVersion).$(semanticVersion)
+      analyzer_profile: '.\\pipeline\\analyzer.profile'
