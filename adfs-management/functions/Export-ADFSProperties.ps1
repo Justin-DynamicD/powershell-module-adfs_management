@@ -84,11 +84,42 @@
           }
 
           # process Contact and Org, as those require custom objects to be defined
+          # the return object is reconstructued in order to strip remote connection info
           If ($SourceProperties.ContactPerson) {
-            $returnProperties.ContactPerson = convertperson -Method getcustom -SessionInfo $sessioninfo
+            $getHash = convertperson -Method getcustom -SessionInfo $sessioninfo
+            If ($null -ne $getHash) {
+              $rebuiltObject = New-Object -TypeName PSObject
+              ForEach ($param in $getHash.GetEnumerator()) {
+                $tmpName = $param.Name
+                $tmpValue = $param.Value
+                switch ($tmpName) {
+                  PSComputerName {}
+                  PSShowComputerName {}
+                  RunspaceId {}
+                  default { $rebuiltObject | Add-Member NoteProperty -Name $tmpName -Value $tmpValue }
+                }
+              }
+              $returnProperties.ContactPerson = $rebuiltObject
+            }
+            else { $returnProperties.ContactPerson = $null }
           }
           If ($SourceProperties.OrganizationInfo) {
-            $returnProperties.OrganizationInfo = convertorganization -Method getcustom -SessionInfo $sessioninfo
+            $getHash = convertorganization -Method getcustom -SessionInfo $sessioninfo
+            If ($null -ne $getHash) {
+              $rebuiltObject = New-Object -TypeName PSObject
+              ForEach ($param in $getHash.GetEnumerator()) {
+                $tmpName = $param.Name
+                $tmpValue = $param.Value
+                switch ($tmpName) {
+                  PSComputerName {}
+                  PSShowComputerName {}
+                  RunspaceId {}
+                  default { $rebuiltObject | Add-Member NoteProperty -Name $tmpName -Value $tmpValue }
+                }
+              }
+              $returnProperties.OrganizationInfo = $rebuiltObject
+            }
+            else { $returnProperties.OrganizationInfo = $null }
           }
 
           #remove psremote info if present
