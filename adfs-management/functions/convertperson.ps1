@@ -52,11 +52,6 @@
         $customContact = Invoke-Command -ScriptBlock $command
       }
 
-      #remove psremote info if present
-      $customContact.Remove("PSComputerName")
-      $customContact.Remove("PSShowComputerName")
-      $customContact.Remove("RunspaceId")
-
       return $customContact
     }
 

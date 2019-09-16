@@ -47,11 +47,6 @@
         $customOrganization = Invoke-Command -ScriptBlock $command
       }
 
-      #remove psremote info if present
-      $customOrganization.Remove("PSComputerName")
-      $customOrganization.Remove("PSShowComputerName")
-      $customOrganization.Remove("RunspaceId")
-
       return $customOrganization
     }
 
