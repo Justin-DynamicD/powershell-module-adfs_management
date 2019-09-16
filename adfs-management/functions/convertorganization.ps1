@@ -24,13 +24,13 @@
       # this command block needs to run locally and transform the object to generic
       $command = {
         $Organization = (Get-AdfsProperties).OrganizationInfo
-        $customOrganization = New-Object -TypeName PSObject 
+        $customOrganization = @{} 
         $noteCount = 0
         $Organization.psobject.properties | ForEach-Object {
           $tmpName = $_.Name
           $tmpValue = $_.Value
           If ($tmpValue) {
-            $customOrganization | Add-Member NoteProperty -Name $tmpName -Value $tmpValue
+            $customOrganization[$tmpName] = $tmpValue
             $noteCount ++
           }
         }
@@ -46,6 +46,12 @@
       else {
         $customOrganization = Invoke-Command -ScriptBlock $command
       }
+
+      #remove psremote info if present
+      $customOrganization.Remove("PSComputerName")
+      $customOrganization.Remove("PSShowComputerName")
+      $customOrganization.Remove("RunspaceId")
+
       return $customOrganization
     }
 

@@ -24,7 +24,7 @@
       # this command block needs to run locally and transform the object to a generic hashtable
       $command = {
         $Contact = (Get-AdfsProperties).ContactPerson
-        $customContact = New-Object -TypeName PSObject 
+        $customContact = @{}
         $noteCount = 0
         $Contact.psobject.properties | ForEach-Object {
           $tmpName = $_.Name
@@ -32,8 +32,8 @@
           If ($tmpValue) {
             switch ($tmpName) {
               ContactType {} # ensure we skip this value
-              default { 
-                $customContact | Add-Member NoteProperty -Name $tmpName -Value $tmpValue
+              default {
+                $customContact[$tmpName] = $tmpValue
                 $noteCount ++
               }
             }
@@ -51,6 +51,12 @@
       else {
         $customContact = Invoke-Command -ScriptBlock $command
       }
+
+      #remove psremote info if present
+      $customContact.Remove("PSComputerName")
+      $customContact.Remove("PSShowComputerName")
+      $customContact.Remove("RunspaceId")
+
       return $customContact
     }
 
