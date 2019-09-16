@@ -16,7 +16,6 @@
   )
   
   $ErrorActionPreference = "Stop"
-  $modulesFound = $true
   $missingModules = @()
 
   $PSModules | ForEach-Object {
@@ -34,11 +33,10 @@
     If ($null -eq $results) {
       $currentModule.Status = "Missing"
       $missingModules += $currentModule
-      $modulesFound = $false
     }
   }
 
-  If (!$modulesFound) {
+  If ($missingModules -ne @()) {
     Write-Output "Summary:"
     $missingModules
     Write-Error "Required modules are missing, cannot continue." -ErrorAction Stop

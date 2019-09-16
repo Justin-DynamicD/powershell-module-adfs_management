@@ -51,6 +51,10 @@
     }
     If ($Credential) { $params.Credential = $Credential }
     $sessioninfo = sessionconfig @params
+
+    
+    # Check for required Modules
+    modulechecker -SessionInfo $sessioninfo
   }
 
   Process {
