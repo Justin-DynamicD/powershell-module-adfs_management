@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.2.0'
+    ModuleVersion = '1.3.0'
     GUID = '0ad55c54-b693-4636-9375-4877987bfdb0'
     Author = 'Justin King'
     CompanyName = 'Unknown'
@@ -16,6 +16,7 @@
       '.\functions\Import-ADFSClaimRule.ps1',
       '.\functions\Import-ADFSClient.ps1',
       '.\functions\Import-ADFSProperties.ps1',
+      '.\functions\modulechecker.ps1',
       '.\functions\sessionconfig.ps1'
     )
     FunctionsToExport = @(
