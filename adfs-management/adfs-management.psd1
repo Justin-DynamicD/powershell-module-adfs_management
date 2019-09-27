@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.3.0'
+    ModuleVersion = '1.3'
     GUID = '0ad55c54-b693-4636-9375-4877987bfdb0'
     Author = 'Justin King'
     CompanyName = 'Unknown'
