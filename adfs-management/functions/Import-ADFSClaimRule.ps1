@@ -16,7 +16,7 @@
     This will import a previously exported RPT rule.
 
     .EXAMPLE
-    Get-Content .\myRPT.json | ConvertFrom-Json | Import-ADFSClaimRule $_ -Server ADFS01 -Credential $mycreds
+    Get-Content .\myRPT.json | Import-ADFSClaimRule $_ -Server ADFS01 -Credential $mycreds
 
     In this example a json file is imported and applied to a remote server with specific credentials.
     #>
@@ -25,9 +25,9 @@
   Param
   (
     # Param1 help description
-    [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 0)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [Alias("Content", "RPT")]
-    [System.Object]$RelyingPartyTrustContent,
+    [string]$RelyingPartyTrustContent,
 
     [Parameter(Mandatory = $false, ValueFromPipeline = $false)]
     [string]$Server = $env:COMPUTERNAME,
@@ -88,99 +88,18 @@
       # Not every field is supported by set-AdfsRelyingPartyTrust, plus null entries are problematic, so we filter and convert as needed.
       $RPTSplat = @{ }
       $RPTSplat.TargetRelyingParty = $SourceRPT
-      If ($null -ne $adfsRPT.AdditionalAuthenticationRules) {
-        $RPTSplat.AdditionalAuthenticationRules = $adfsRPT.AdditionalAuthenticationRules
+
+      $adfsRPT.psobject.properties | ForEach-Object {     
+        $tmpName = $_.Name
+        $tmpValue = $_.Value
+        switch ($tmpName) {
+          ClaimsAccepted {$RPTSplat.ClaimAccepted = $tmpValue }
+          default { $RPTSplat[$tmpName] = $tmpValue }
+        }
       }
-      If ($null -ne $adfsRPT.AdditionalWSFedEndpoint) {
-        $RPTSplat.AdditionalWSFedEndpoint = $adfsRPT.AdditionalWSFedEndpoint
-      }
-      If ($null -ne $adfsRPT.AllowedAuthenticationClassReferences) {
-        $RPTSplat.AllowedAuthenticationClassReferences = $adfsRPT.AllowedAuthenticationClassReferences
-      }
-      If ($null -ne $adfsRPT.AllowedClientTypes) {
-        $RPTSplat.AllowedClientTypes = $adfsRPT.AllowedClientTypes
-      }
-      If ($null -ne $adfsRPT.AlwaysRequireAuthentication) {
-        $RPTSplat.AlwaysRequireAuthentication = $adfsRPT.AlwaysRequireAuthentication
-      }
-      If ($null -ne $adfsRPT.AutoUpdateEnabled) {
-        $RPTSplat.AutoUpdateEnabled = $adfsRPT.AutoUpdateEnabled
-      }
-      If ($null -ne $adfsRPT.ClaimsAccepted) {
-        $RPTSplat.ClaimAccepted = $adfsRPT.ClaimsAccepted
-      }
-      If ($null -ne $adfsRPT.ClaimsProviderName) {
-        $RPTSplat.ClaimsProviderName = $adfsRPT.ClaimsProviderName
-      }
-      If ($null -ne $adfsRPT.DelegationAuthorizationRules) {
-        $RPTSplat.DelegationAuthorizationRules = $adfsRPT.DelegationAuthorizationRules
-      }
-      If ($null -ne $adfsRPT.EnableJWT) {
-        $RPTSplat.EnableJWT = $adfsRPT.EnableJWT
-      }
-      If ($null -ne $adfsRPT.EncryptClaims) {
-        $RPTSplat.EncryptClaims = $adfsRPT.EncryptClaims
-      }
-      If ($null -ne $adfsRPT.EncryptedNameIdRequired) {
-        $RPTSplat.EncryptedNameIdRequired = $adfsRPT.EncryptedNameIdRequired
-      }
-      If ($null -ne $adfsRPT.EncryptionCertificate) {
-        $RPTSplat.EncryptionCertificate = $adfsRPT.EncryptionCertificate
-      }
-      If ($null -ne $adfsRPT.EncryptionCertificateRevocationCheck) {
-        $RPTSplat.EncryptionCertificateRevocationCheck = $adfsRPT.EncryptionCertificateRevocationCheck
-      }
-      If ($null -ne $adfsRPT.ImpersonationAuthorizationRules) {
-        $RPTSplat.ImpersonationAuthorizationRules = $adfsRPT.ImpersonationAuthorizationRules
-      }
-      If ($null -ne $adfsRPT.IssuanceAuthorizationRules) {
-        $RPTSplat.IssuanceAuthorizationRules = $adfsRPT.IssuanceAuthorizationRules
-      }
-      If ($null -ne $adfsRPT.IssuanceTransformRules) {
-        $RPTSplat.IssuanceTransformRules = $adfsRPT.IssuanceTransformRules
-      }
-      If ($null -ne $adfsRPT.IssueOAuthRefreshTokensTo) {
-        $RPTSplat.IssueOAuthRefreshTokensTo = $adfsRPT.IssueOAuthRefreshTokensTo
-      }
-      If ($null -ne $adfsRPT.MetadataUrl) {
-        $RPTSplat.MetadataUrl = $adfsRPT.MetadataUrl
-      }
-      If ($null -ne $adfsRPT.MonitoringEnabled) {
-        $RPTSplat.MonitoringEnabled = $adfsRPT.MonitoringEnabled
-      }
-      If ($null -ne $adfsRPT.NotBeforeSkew) {
-        $RPTSplat.NotBeforeSkew = $adfsRPT.NotBeforeSkew
-      }
-      If ($null -ne $adfsRPT.Notes) {
-        $RPTSplat.Notes = $adfsRPT.Notes
-      }
-      If ($null -ne $adfsRPT.ProtocolProfile) {
-        $RPTSplat.ProtocolProfile = $adfsRPT.ProtocolProfile
-      }
-      If ($null -ne $adfsRPT.RequestSigningCertificate) {
-        $RPTSplat.RequestSigningCertificate = $adfsRPT.RequestSigningCertificate
-      }
-      If ($null -ne $adfsRPT.SamlEndpoint) {
-        $RPTSplat.SamlEndpoint = $adfsRPT.SamlEndpoint
-      }
-      If ($null -ne $adfsRPT.SamlResponseSignature) {
-        $RPTSplat.SamlResponseSignature = $adfsRPT.SamlResponseSignature
-      }
-      If ($null -ne $adfsRPT.SignatureAlgorithm) {
-        $RPTSplat.SignatureAlgorithm = $adfsRPT.SignatureAlgorithm
-      }
-      If ($null -ne $adfsRPT.SignedSamlRequestsRequired) {
-        $RPTSplat.SignedSamlRequestsRequired = $adfsRPT.SignedSamlRequestsRequired
-      }
-      If ($null -ne $adfsRPT.SigningCertificateRevocationCheck) {
-        $RPTSplat.SigningCertificateRevocationCheck = $adfsRPT.SigningCertificateRevocationCheck
-      }
-      If ($null -ne $adfsRPT.TokenLifetime) {
-        $RPTSplat.TokenLifetime = $adfsRPT.TokenLifetime
-      }
-      If ($null -ne $adfsRPT.WSFedEndpoint) {
-        $RPTSplat.WSFedEndpoint = $adfsRPT.WSFedEndpoint
-      }
+    
+      Write-Output $RPTSplat.TargetRelyingParty
+      Write-Output $RPTSplat.TargetRelyingParty.gettype()
 
       # Finally work can be done.
       Write-Output "importing content"
