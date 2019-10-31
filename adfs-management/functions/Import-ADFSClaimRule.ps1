@@ -76,40 +76,51 @@
         if ($sessioninfo.SourceRemote) {
           $command = { Add-AdfsRelyingPartyTrust -Name $Using:adfsRPT.Name -Identifier $Using:adfsRPT.Identifier }
           Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
-          $command = { Get-AdfsRelyingPartyTrust -Name $Using:adfsRPT.Name }
-          $SourceRPT = Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
         }
         else {
           Add-AdfsRelyingPartyTrust -Name $adfsRPT.Name -Identifier $adfsRPT.Identifier
-          $SourceRPT = Get-AdfsRelyingPartyTrust -Name $adfsRPT.Name
         }
       }
 
       # Not every field is supported by set-AdfsRelyingPartyTrust, plus null entries are problematic, so we filter and convert as needed.
       $RPTSplat = @{ }
-      $RPTSplat.TargetRelyingParty = $SourceRPT
 
-      $adfsRPT.psobject.properties | ForEach-Object {     
+      $adfsRPT.psobject.properties | Where-Object { $null -ne $_.Value } | ForEach-Object {     
         $tmpName = $_.Name
         $tmpValue = $_.Value
         switch ($tmpName) {
           ClaimsAccepted {$RPTSplat.ClaimAccepted = $tmpValue }
+          ConflictWithPublishedPolicy {} #non-configurable/reporting only value, ignore
+          Enabled {} # this value is set by a different cmdlet, remove from splat
+          LastUpdateTime {} #non-configurable/reporting only value, ignore
+          LastMonitoredTime {} #non-configurable/reporting only value, ignore
+          OrganizationInfo {} #non-configurable/reporting only value, ignore
+          PublishedThroughProxy {} # not a string value, custom object required #backlog
+          ProxyEndpointMappings {} # not a string value, custom object required #backlog
+          ProxyTrustedEndpoints {} # not a string value, custom object required #backlog
+          SamlEndpoints {} # not a string value, custom object required #backlog
           default { $RPTSplat[$tmpName] = $tmpValue }
         }
       }
-    
-      Write-Output $RPTSplat.TargetRelyingParty
-      Write-Output $RPTSplat.TargetRelyingParty.gettype()
 
       # Finally work can be done.
       Write-Output "importing content"
       if ($sessioninfo.SourceRemote) {
-        $command = { Set-AdfsRelyingPartyTrust @Using:RPTSplat }
+        $command = {
+          $splat = $Using:RPTSplat
+          $toggleOn = $Using:adfsRPT.Enabled
+          $splat.TargetRelyingParty = Get-AdfsRelyingPartyTrust -Name $splat.Name
+          Set-AdfsRelyingPartyTrust @splat
+          If ($toggleOn) { Enable-AdfsRelyingPartyTrust -TargetName $splat.Name } Else { Disable-AdfsRelyingPartyTrust -TargetName $splat.Name }
+        }
         Invoke-Command -Session $sessioninfo.SessionData -ScriptBlock $command
       }
       else {
+        $RPTSplat.TargetRelyingParty = Get-AdfsRelyingPartyTrust -Name $RPTSplat.Name
         Set-AdfsRelyingPartyTrust @RPTSplat
+        If ($adfsRPT.Enabled) { Enable-AdfsRelyingPartyTrust -TargetName $RPTSplat.Name } Else { Disable-AdfsRelyingPartyTrust -TargetName $RPTSplat.Name }
       }
+
     } # End RPT Loop
   }
 
